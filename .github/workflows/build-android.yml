@@ -48,7 +48,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
-          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=tilestreak-release.keystore -Pandroid.injected.signing.store.password=TileStreak2026 -Pandroid.injected.signing.key.alias=tilestreak -Pandroid.injected.signing.key.password=TileStreak2026
+          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/tilestreak-release.keystore -Pandroid.injected.signing.store.password=TileStreak2026 -Pandroid.injected.signing.key.alias=tilestreak -Pandroid.injected.signing.key.password=TileStreak2026
 
       - name: Upload Test APK
         uses: actions/upload-artifact@v4
