@@ -1,55 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — TileStreak Habit Tracker</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
-  </style>
-</head>
-<body class="bg-slate-50 text-slate-800 antialiased py-10 px-4">
-  <main class="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-6">
-    <header class="border-b border-slate-200 pb-4">
-      <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Privacy Policy</h1>
-      <p class="text-sm text-slate-500 mt-1">TileStreak — Daily Habit &amp; Streak Grid Tracker • Effective Date: November 15, 2026</p>
-    </header>
+name: Build Android APK & AAB
 
-    <section class="space-y-2">
-      <h2 class="text-lg font-bold text-slate-900">1. Overview</h2>
-      <p class="text-sm leading-relaxed text-slate-700">
-        TileStreak respects your privacy. This application is designed to work locally on your device without requiring an account, login, or cloud registration.
-      </p>
-    </section>
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
 
-    <section class="space-y-2">
-      <h2 class="text-lg font-bold text-slate-900">2. Data Collection &amp; Storage</h2>
-      <p class="text-sm leading-relaxed text-slate-700">
-        We do not collect, store, or transmit your personal habit entries, names, emails, or usage logs to external servers. All habit names, check-ins, and streak data are stored exclusively in local storage on your device. You can export or delete your data at any time using the in-app controls.
-      </p>
-    </section>
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    <section class="space-y-2">
-      <h2 class="text-lg font-bold text-slate-900">3. Advertising &amp; Third-Party Services</h2>
-      <p class="text-sm leading-relaxed text-slate-700">
-        If future versions of TileStreak display advertisements (such as Google AdMob) or offer optional in-app purchases via Google Play Billing, those third-party providers may process standard device identifiers in accordance with their own privacy policies and Google Play guidelines.
-      </p>
-    </section>
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    <section class="space-y-2">
-      <h2 class="text-lg font-bold text-slate-900">4. Children's Privacy</h2>
-      <p class="text-sm leading-relaxed text-slate-700">
-        TileStreak is a general productivity tool intended for users aged 18 and above and is not directed at children under 13.
-      </p>
-    </section>
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    <section class="space-y-2">
-      <h2 class="text-lg font-bold text-slate-900">5. Contact</h2>
-      <p class="text-sm leading-relaxed text-slate-700">
-        If you have any questions about this Privacy Policy, please reach out using the developer support email listed on the TileStreak Google Play Store page.
-      </p>
-    </section>
-  </main>
-</body>
-</html>
+      - name: Install Capacitor & Add Android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+          sed -i 's/compileSdkVersion = 34/compileSdkVersion = 35/g' android/variables.gradle
+          sed -i 's/targetSdkVersion = 34/targetSdkVersion = 35/g' android/variables.gradle
+          echo "android.suppressUnsupportedCompileSdk=35" >> android/gradle.properties
+
+      - name: Set App Icon
+        run: |
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          for dir in android/app/src/main/res/mipmap-*; do
+            if [ -d "$dir" ]; then
+              cp icon-512.png "$dir/ic_launcher.png" || true
+              cp icon-512.png "$dir/ic_launcher_round.png" || true
+            fi
+          done
+
+      - name: Generate Release Keystore
+        run: |
+          keytool -genkey -v -keystore android/app/tilestreak-release.keystore -alias tilestreak -keyalg RSA -keysize 2048 -validity 10000 -storepass TileStreak2026 -keypass TileStreak2026 -dname "CN=TileStreak, OU=App, O=TileStreak, L=Ahmedabad, S=Gujarat, C=IN"
+
+      - name: Build Debug APK & Signed Release AAB
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/tilestreak-release.keystore -Pandroid.injected.signing.store.password=TileStreak2026 -Pandroid.injected.signing.key.alias=tilestreak -Pandroid.injected.signing.key.password=TileStreak2026
+
+      - name: Upload Test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TileStreak-Test-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Play Store AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TileStreak-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Signing Keystore (Save Safely!)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TileStreak-Keystore
+          path: android/app/tilestreak-release.keystore
