@@ -4,7 +4,8 @@
   "description": "TileStreak Daily Routine & Momentum Tracker",
   "dependencies": {
     "@capacitor/core": "^6.1.0",
-    "@capacitor/android": "^6.1.0"
+    "@capacitor/android": "^6.1.0",
+    "cordova-plugin-purchase": "^13.11.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.0"
