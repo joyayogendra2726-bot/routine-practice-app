@@ -28,6 +28,8 @@ jobs:
           npm install
           npx cap add android
           npx cap sync android
+          sed -i 's/34/35/g' android/variables.gradle
+          echo "android.suppressUnsupportedCompileSdk=35" >> android/gradle.properties
 
       - name: Set App Icon
         run: |
