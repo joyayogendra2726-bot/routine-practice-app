@@ -1,0 +1,6 @@
+{
+  "appId": "com.tilestreak.habitapp",
+  "appName": "TileStreak",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
