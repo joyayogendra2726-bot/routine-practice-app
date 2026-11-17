@@ -364,12 +364,10 @@
     const COLORS = [{ hex: '#0d9488' }, { hex: '#10b981' }, { hex: '#f59e0b' }, { hex: '#0ea5e9' }, { hex: '#f43f5e' }, { hex: '#8b5cf6' }];
 
     function buildStarterHabits() {
-      const dates = getLastNDates(84), w = {}, r = {}, wa = {};
-      dates.forEach((ds, i) => { if (i % 3 !== 0 && i < 83) w[ds] = true; if (i > 50 && i % 2 === 0 && i < 83) r[ds] = true; if (i > 65 && i < 83) wa[ds] = true; });
       return [
-        { id: 'h1', name: 'Morning Walk (20m)', note: 'Fresh air & sunlight', icon: '🏃', color: '#0d9488', archived: false, logs: w },
-        { id: 'h2', name: 'Read 10 Pages', note: 'Before bedtime', icon: '📚', color: '#f59e0b', archived: false, logs: r },
-        { id: 'h3', name: 'Drink 8 Glasses Water', note: 'Stay hydrated', icon: '💧', color: '#0ea5e9', archived: false, logs: wa }
+        { id: 'h1', name: 'Morning Walk (20m)', note: 'Fresh air & sunlight', icon: '🏃', color: '#0d9488', archived: false, logs: {} },
+        { id: 'h2', name: 'Read 10 Pages', note: 'Before bedtime', icon: '📚', color: '#f59e0b', archived: false, logs: {} },
+        { id: 'h3', name: 'Drink 8 Glasses Water', note: 'Stay hydrated', icon: '💧', color: '#0ea5e9', archived: false, logs: {} }
       ];
     }
 
@@ -710,60 +708,64 @@
         });
       }));
       const SKU_MAP = {
-        lifetime: { sku: 'tilestreak_lifetime', price: '1800.00', label: 'TileStreak Plus Lifetime' },
-        annual: { sku: 'tilestreak_annual', price: '600.00', label: 'TileStreak Plus Yearly' },
-        monthly: { sku: 'tilestreak_monthly', price: '220.00', label: 'TileStreak Plus Monthly' }
+        lifetime: { sku: 'tilestreak_lifetime', type: 'non_consumable' },
+        annual: { sku: 'tilestreak_annual', type: 'subscription' },
+        monthly: { sku: 'tilestreak_monthly', type: 'subscription' }
       };
-
-      async function checkPlayPurchases(silent = false) {
-        if (!('getDigitalGoodsService' in window)) {
-          if (!silent) showToast('Open via Google Play Store app to restore');
-          return;
-        }
-        try {
-          const service = await window.getDigitalGoodsService('https://play.google.com/billing');
-          const purchases = await service.listPurchases();
-          if (purchases && purchases.length > 0) {
-            state.isPro = true; saveState(); updateProUI();
-            if (!silent) showToast('👑 Plus restored!');
-          } else if (!silent) {
-            showToast('No previous purchase found');
-          }
-        } catch (_) {
-          if (!silent) showToast('Restore available in Play Store build');
-        }
-      }
 
       function updateProUI() {
         const banner = document.getElementById('proActiveBanner');
         if (banner) banner.classList.toggle('hidden', !state.isPro);
       }
       updateProUI();
-      checkPlayPurchases(true);
 
-      document.getElementById('restorePurchaseBtn').addEventListener('click', () => checkPlayPurchases(false));
+      let iapStore = null;
+      function initIAPStore() {
+        if (!window.CdvPurchase || !window.CdvPurchase.store) return;
+        const { store, ProductType, Platform } = window.CdvPurchase;
+        iapStore = store;
+        store.register([
+          { id: 'tilestreak_lifetime', type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY },
+          { id: 'tilestreak_annual', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
+          { id: 'tilestreak_monthly', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
+        ]);
+        store.when()
+          .approved(tx => {
+            state.isPro = true; saveState(); updateProUI();
+            tx.finish();
+            showToast('👑 TileStreak Plus Unlocked!');
+          })
+          .verified(receipt => receipt.finish());
+        store.initialize([Platform.GOOGLE_PLAY]).catch(() => {});
+      }
+      document.addEventListener('deviceready', initIAPStore, false);
+      setTimeout(initIAPStore, 1200);
+
+      document.getElementById('restorePurchaseBtn').addEventListener('click', async () => {
+        if (iapStore) {
+          try {
+            await iapStore.restorePurchases();
+            showToast(state.isPro ? '👑 Plus restored!' : 'Checking Play Store purchases...');
+            return;
+          } catch (_) {}
+        }
+        showToast('Restore works in Play Store build');
+      });
 
       document.getElementById('proContinueBtn').addEventListener('click', async () => {
         const item = SKU_MAP[state.selectedPlan] || SKU_MAP.annual;
-        if ('getDigitalGoodsService' in window && 'PaymentRequest' in window) {
+        if (iapStore && window.CdvPurchase) {
           try {
-            const service = await window.getDigitalGoodsService('https://play.google.com/billing');
-            const req = new PaymentRequest(
-              [{ supportedMethods: 'https://play.google.com/billing', data: { sku: item.sku } }],
-              { total: { label: item.label, amount: { currency: 'INR', value: item.price } } }
-            );
-            const res = await req.show();
-            const token = res.details && res.details.purchaseToken;
-            if (token && service.acknowledge) await service.acknowledge(token, 'onetime');
-            await res.complete('success');
-            state.isPro = true; saveState(); updateProUI();
-            showToast('👑 Welcome to TileStreak Plus!');
-            return;
-          } catch (err) {
-            if (err && err.name === 'AbortError') { showToast('Purchase cancelled'); return; }
-          }
+            const prod = iapStore.get(item.sku, window.CdvPurchase.Platform.GOOGLE_PLAY);
+            const offer = prod && prod.getOffer ? prod.getOffer() : null;
+            if (offer) {
+              const err = await offer.order();
+              if (err) showToast('Purchase cancelled or unavailable');
+              return;
+            }
+          } catch (_) {}
         }
-        showToast('Ready for Play Billing SKU: ' + item.sku);
+        showToast('Ready for Play Store SKU: ' + item.sku);
       });
     }
 
