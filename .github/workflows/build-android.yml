@@ -31,6 +31,7 @@ jobs:
 
       - name: Set App Icon
         run: |
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
           for dir in android/app/src/main/res/mipmap-*; do
             if [ -d "$dir" ]; then
               cp icon-512.png "$dir/ic_launcher.png" || true
