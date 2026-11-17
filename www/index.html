@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>TileStreak — Daily Routine & Momentum Tracker</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; min-height: 100vh; -webkit-tap-highlight-color: transparent; transition: background-color 0.2s ease, color 0.2s ease; }
+    #appHeader { padding-top: max(26px, env(safe-area-inset-top)); }
+    #bottomNav { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
     body.light-theme { background-color: #f4f7f6; color: #0f172a; }
     body.dark-theme { background-color: #0b1318; color: #f8fafc; }
     .tile-cell { transition: transform 0.12s ease, background-color 0.15s ease; }
@@ -20,7 +22,7 @@
     @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
   </style>
 </head>
-<body class="light-theme antialiased pb-24">
+<body class="light-theme antialiased pb-32">
 
   <!-- ==================== SPLASH SCREEN ==================== -->
   <div id="splashScreen" class="fixed inset-0 z-[80] bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-800 flex flex-col items-center justify-center text-white">
@@ -403,7 +405,7 @@
 
     function applyTheme() {
       const isDark = state.theme === 'dark';
-      document.body.className = `${isDark ? 'dark-theme' : 'light-theme'} antialiased pb-24`;
+      document.body.className = `${isDark ? 'dark-theme' : 'light-theme'} antialiased pb-32`;
       document.getElementById('appHeader').className = isDark ? 'sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800' : 'sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200';
       document.getElementById('bottomNav').className = isDark ? 'fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800' : 'fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200';
       document.getElementById('themeStatusLabel').textContent = isDark ? 'Dark ›' : 'Light ›';
