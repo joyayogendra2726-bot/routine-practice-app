@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>TileStreak — Daily Routine & Momentum Tracker</title>
+  <title>Routine Practice — Daily Routine & Momentum Tracker</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,7 +27,7 @@
   <!-- ==================== SPLASH SCREEN ==================== -->
   <div id="splashScreen" class="fixed inset-0 z-[80] bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-800 flex flex-col items-center justify-center text-white">
     <div class="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-2xl mb-4 pop-in text-4xl">🔥</div>
-    <h1 class="text-3xl font-extrabold tracking-tight">Tile<span class="text-amber-300">Streak</span></h1>
+    <h1 class="text-3xl font-extrabold tracking-tight">Routine <span class="text-amber-300">Practice</span></h1>
     <p class="text-sm text-teal-100 mt-1 font-medium">Small steps. Unstoppable momentum.</p>
   </div>
 
@@ -37,7 +37,7 @@
       <div id="onboardStep1" class="space-y-4 pt-3">
         <div class="text-center space-y-1">
           <span class="inline-block px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">Step 1 of 2</span>
-          <h2 class="text-3xl font-extrabold tracking-tight pt-1">Welcome to Tile<span class="text-teal-600">Streak</span></h2>
+          <h2 class="text-3xl font-extrabold tracking-tight pt-1">Welcome to Routine <span class="text-teal-600">Practice</span></h2>
           <p class="text-sm text-slate-500">Everything you need to build lasting routines</p>
         </div>
         <div class="space-y-2">
@@ -80,7 +80,7 @@
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-lg shadow-sm">🔥</div>
         <div>
-          <h1 id="headerGreeting" class="text-base sm:text-lg font-extrabold tracking-tight leading-none">Tile<span class="text-teal-600">Streak</span></h1>
+          <h1 id="headerGreeting" class="text-base sm:text-lg font-extrabold tracking-tight leading-none">Routine <span class="text-teal-600">Practice</span></h1>
           <p id="headerSubtitle" class="text-[11px] text-slate-500 mt-0.5 font-medium">Daily Momentum</p>
         </div>
       </div>
@@ -132,7 +132,7 @@
     <!-- ==================== TAB 3: PLUS ==================== -->
     <section id="tab-pro" class="tab-view hidden space-y-4">
       <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-4 shadow-sm">
-        <div class="text-center"><span class="text-3xl">👑</span><h2 class="text-2xl font-extrabold mt-1">Unlock Tile<span class="text-teal-600">Streak</span> Plus</h2><p class="text-xs text-slate-500 mt-1">Unlimited habits, full calendar history &amp; themes</p></div>
+        <div class="text-center"><span class="text-3xl">👑</span><h2 class="text-2xl font-extrabold mt-1">Unlock Routine <span class="text-teal-600">Practice</span> Plus</h2><p class="text-xs text-slate-500 mt-1">Unlimited habits, full calendar history &amp; themes</p></div>
         <div id="planList" class="space-y-2.5">
           <button type="button" data-plan="lifetime" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"></span><div><p class="font-bold text-base">Lifetime Pass</p><p class="text-xs text-slate-500">Pay once. Unlimited access forever.</p></div></div><span class="font-extrabold text-base">₹1,800.00</span></button>
           <button type="button" data-plan="annual" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/70 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio w-5 h-5 rounded-full border-2 border-teal-600 flex items-center justify-center"><span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span></span><div><p class="font-bold text-base">Yearly <span class="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-teal-600 text-white uppercase">Save 75%</span></p><p class="text-xs text-slate-500">Recurring billing. Cancel anytime.</p></div></div><div class="text-right"><span class="font-extrabold text-base">₹600.00</span><p class="text-[11px] text-slate-500">/ year</p></div></button>
@@ -140,14 +140,14 @@
         </div>
         <button id="proContinueBtn" type="button" class="w-full py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-base shadow-lg">Continue</button>
         <button id="restorePurchaseBtn" type="button" class="w-full py-2 text-xs font-bold text-teal-600 hover:underline">Already subscribed? Restore Purchase</button>
-        <p id="proActiveBanner" class="hidden text-center text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2">👑 TileStreak Plus is Active!</p>
+        <p id="proActiveBanner" class="hidden text-center text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2">👑 Routine Practice Plus is Active!</p>
       </div>
     </section>
 
     <!-- ==================== TAB 4: FULL SETTINGS ==================== -->
     <section id="tab-settings" class="tab-view hidden space-y-5">
       <button id="settingsProBannerBtn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold text-base shadow-md">
-        Get TileStreak Plus →
+        Get Routine Practice Plus →
       </button>
 
       <!-- APP GROUP -->
@@ -225,7 +225,7 @@
             <span class="text-xs text-slate-400">›</span>
           </button>
         </div>
-        <p class="text-center text-[11px] text-slate-400 pt-2">TileStreak 2.0 (Build 204)</p>
+        <p class="text-center text-[11px] text-slate-400 pt-2">Routine Practice 2.0 (Build 204)</p>
       </div>
     </section>
   </main>
@@ -381,7 +381,7 @@
       calHabitId: null, calYear: new Date().getFullYear(), calMonth: new Date().getMonth(), lastAlarmMinute: ''
     };
     try {
-      const s = JSON.parse(localStorage.getItem('tilestreak_v6_state') || '{}');
+      const s = JSON.parse(localStorage.getItem('routinepractice_v6_state') || '{}');
       if (Array.isArray(s.habits) && s.habits.length) state.habits = s.habits;
       if (s.theme) state.theme = s.theme; if (s.onboarded) state.onboarded = true;
       if (s.userName) state.userName = s.userName; if (s.userFocus) state.userFocus = s.userFocus;
@@ -395,7 +395,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem('tilestreak_v6_state', JSON.stringify({
+        localStorage.setItem('routinepractice_v6_state', JSON.stringify({
           habits: state.habits, theme: state.theme, onboarded: state.onboarded,
           userName: state.userName, userFocus: state.userFocus, alarmOn: state.alarmOn,
           reminderTime: state.reminderTime, soundOn: state.soundOn, compactGrid: state.compactGrid, isPro: state.isPro
@@ -434,7 +434,7 @@
     function updateHeader() {
       const greet = document.getElementById('headerGreeting'), sub = document.getElementById('headerSubtitle');
       if (state.userName) { greet.innerHTML = `Hi, <span class="text-teal-600">${state.userName}</span>`; sub.textContent = state.userFocus; }
-      else { greet.innerHTML = `Tile<span class="text-teal-600">Streak</span>`; sub.textContent = 'Daily Momentum'; }
+      else { greet.innerHTML = `Routine <span class="text-teal-600">Practice</span>`; sub.textContent = 'Daily Momentum'; }
     }
 
     function switchTab(tab) {
@@ -488,9 +488,9 @@
       ctx.fillStyle = '#042f2e'; ctx.fillRect(0, 0, 760, 400); ctx.fillStyle = '#134e4a'; ctx.beginPath(); ctx.roundRect(24, 24, 712, 352, 28); ctx.fill();
       ctx.fillStyle = '#ffffff'; ctx.font = 'bold 34px Inter, sans-serif'; ctx.fillText(`${habit.icon} ${habit.name}`, 56, 86);
       const streak = computeStreak(habit.logs), total = Object.values(habit.logs).filter(Boolean).length;
-      ctx.fillStyle = '#99f6e4'; ctx.font = '600 20px Inter, sans-serif'; ctx.fillText(`${streak} day streak 🔥  •  ${total} completions  •  TileStreak`, 56, 122);
+      ctx.fillStyle = '#99f6e4'; ctx.font = '600 20px Inter, sans-serif'; ctx.fillText(`${streak} day streak 🔥  •  ${total} completions  •  Routine Practice`, 56, 122);
       getLastNDates(84).forEach((ds, idx) => { const col = Math.floor(idx / 7), row = idx % 7; ctx.fillStyle = habit.logs[ds] ? habit.color : '#115e59'; ctx.beginPath(); ctx.roundRect(56 + col * 50, 156 + row * 28, 38, 22, 5); ctx.fill(); });
-      const link = document.createElement('a'); link.download = `tilestreak_${habit.name.replace(/\s+/g, '_').toLowerCase()}.png`;
+      const link = document.createElement('a'); link.download = `routinepractice_${habit.name.replace(/\s+/g, '_').toLowerCase()}.png`;
       link.href = canvas.toDataURL('image/png'); link.click(); showToast('📸 Streak card saved!');
     }
 
@@ -599,7 +599,7 @@
           playAlarmChime();
           showToast('🔔 Time for your daily habit check-in!');
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('TileStreak Reminder 🔥', { body: 'Time to complete your daily habits!' });
+            new Notification('Routine Practice Reminder 🔥', { body: 'Time to complete your daily habits!' });
           }
         }
       }, 15000);
@@ -650,13 +650,13 @@
         showToast(`🔔 Alarm set for ${state.reminderTime}`);
       });
 
-      document.getElementById('setLanguageBtn').addEventListener('click', () => showInfoModal('Language 🌐', '<p>TileStreak is set to <b>English (Global)</b> for Play Store compatibility.</p>'));
+      document.getElementById('setLanguageBtn').addEventListener('click', () => showInfoModal('Language 🌐', '<p>Routine Practice is set to <b>English (Global)</b> for Play Store compatibility.</p>'));
       document.getElementById('setArchivedBtn').addEventListener('click', () => { state.showArchived = true; document.getElementById('toggleArchiveFilterBtn').textContent = '📦 Archived'; switchTab('habits'); renderAll(); });
       document.getElementById('setBackupBtn').addEventListener('click', () => document.getElementById('backupModal').classList.remove('hidden'));
       document.getElementById('closeBackupBtn').addEventListener('click', () => document.getElementById('backupModal').classList.add('hidden'));
       document.getElementById('exportBackupBtn').addEventListener('click', () => {
         const blob = new Blob([JSON.stringify(state.habits, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `tilestreak_${formatDateISO(new Date())}.json`; a.click(); URL.revokeObjectURL(url); showToast('Backup downloaded!');
+        const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `routinepractice_${formatDateISO(new Date())}.json`; a.click(); URL.revokeObjectURL(url); showToast('Backup downloaded!');
       });
       document.getElementById('importBackupInput').addEventListener('change', e => {
         const file = e.target.files[0]; if (!file) return;
@@ -674,10 +674,10 @@
       document.getElementById('closeReorderBtn').addEventListener('click', () => document.getElementById('reorderModal').classList.add('hidden'));
 
       document.getElementById('setWhatsNewBtn').addEventListener('click', () => showInfoModal("What's New 📰", '<p><b>Version 2.0:</b> Added Daily Check-In Alarms, Calendar History Editor, Habit Notes, Archive/Restore, XP Leveling, and JSON Restore.</p>'));
-      document.getElementById('setFeedbackBtn').addEventListener('click', () => showInfoModal('Send Feedback ✉️', '<p>Love TileStreak or want a new feature? Leave a review or message us on the Google Play Store listing page!</p>'));
-      document.getElementById('openPrivacyBtn').addEventListener('click', () => showInfoModal('Privacy Policy 🔒', '<p>TileStreak stores your name, habits, notes, and check-ins exclusively on your device. Zero personal data is sent to external servers.</p>'));
-      document.getElementById('setTermsBtn').addEventListener('click', () => showInfoModal('Terms Of Service §', '<p>TileStreak is a personal productivity tool provided as-is. Subscriptions and lifetime passes are managed securely through Google Play Billing.</p>'));
-      document.getElementById('setRateBtn').addEventListener('click', () => showInfoModal('Rate TileStreak ⭐', '<p>Thank you for using TileStreak! Once published on Google Play, your 5-star review helps more people discover the app.</p>'));
+      document.getElementById('setFeedbackBtn').addEventListener('click', () => showInfoModal('Send Feedback ✉️', '<p>Love Routine Practice or want a new feature? Leave a review or message us on the Google Play Store listing page!</p>'));
+      document.getElementById('openPrivacyBtn').addEventListener('click', () => showInfoModal('Privacy Policy 🔒', '<p>Routine Practice stores your name, habits, notes, and check-ins exclusively on your device. Zero personal data is sent to external servers.</p>'));
+      document.getElementById('setTermsBtn').addEventListener('click', () => showInfoModal('Terms Of Service §', '<p>Routine Practice is a personal productivity tool provided as-is. Subscriptions and lifetime passes are managed securely through Google Play Billing.</p>'));
+      document.getElementById('setRateBtn').addEventListener('click', () => showInfoModal('Rate Routine Practice ⭐', '<p>Thank you for using Routine Practice! Once published on Google Play, your 5-star review helps more people discover the app.</p>'));
       document.getElementById('closeInfoBtn').addEventListener('click', () => document.getElementById('infoModal').classList.add('hidden'));
 
       document.getElementById('closeCalModalBtn').addEventListener('click', () => document.getElementById('calendarModal').classList.add('hidden'));
@@ -710,9 +710,9 @@
         });
       }));
       const SKU_MAP = {
-        lifetime: { sku: 'tilestreak_lifetime', type: 'non_consumable' },
-        annual: { sku: 'tilestreak_annual', type: 'subscription' },
-        monthly: { sku: 'tilestreak_monthly', type: 'subscription' }
+        lifetime: { sku: 'routinepractice_lifetime', type: 'non_consumable' },
+        annual: { sku: 'routinepractice_annual', type: 'subscription' },
+        monthly: { sku: 'routinepractice_monthly', type: 'subscription' }
       };
 
       function updateProUI() {
@@ -727,15 +727,15 @@
         const { store, ProductType, Platform } = window.CdvPurchase;
         iapStore = store;
         store.register([
-          { id: 'tilestreak_lifetime', type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY },
-          { id: 'tilestreak_annual', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
-          { id: 'tilestreak_monthly', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
+          { id: 'routinepractice_lifetime', type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY },
+          { id: 'routinepractice_annual', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY },
+          { id: 'routinepractice_monthly', type: ProductType.PAID_SUBSCRIPTION, platform: Platform.GOOGLE_PLAY }
         ]);
         store.when()
           .approved(tx => {
             state.isPro = true; saveState(); updateProUI();
             tx.finish();
-            showToast('👑 TileStreak Plus Unlocked!');
+            showToast('👑 Routine Practice Plus Unlocked!');
           })
           .verified(receipt => receipt.finish());
         store.initialize([Platform.GOOGLE_PLAY]).catch(() => {});
