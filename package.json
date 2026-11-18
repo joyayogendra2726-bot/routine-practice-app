@@ -1,7 +1,7 @@
 {
-  "name": "tilestreak",
+  "name": "routine-practice",
   "version": "2.0.0",
-  "description": "TileStreak Daily Routine & Momentum Tracker",
+  "description": "Routine Practice \u2014 Daily Habit & Momentum Tracker",
   "dependencies": {
     "@capacitor/core": "^6.1.0",
     "@capacitor/android": "^6.1.0",
