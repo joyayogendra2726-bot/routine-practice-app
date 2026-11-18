@@ -44,29 +44,29 @@ jobs:
 
       - name: Generate Release Keystore
         run: |
-          keytool -genkey -v -keystore android/app/tilestreak-release.keystore -alias tilestreak -keyalg RSA -keysize 2048 -validity 10000 -storepass TileStreak2026 -keypass TileStreak2026 -dname "CN=TileStreak, OU=App, O=TileStreak, L=Ahmedabad, S=Gujarat, C=IN"
+          keytool -genkey -v -keystore android/app/routinepractice-release.keystore -alias routinepractice -keyalg RSA -keysize 2048 -validity 10000 -storepass RoutinePractice2026 -keypass RoutinePractice2026 -dname "CN=Routine Practice, OU=App, O=Routine Practice, L=Ahmedabad, S=Gujarat, C=IN"
 
       - name: Build Debug APK & Signed Release AAB
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
-          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/tilestreak-release.keystore -Pandroid.injected.signing.store.password=TileStreak2026 -Pandroid.injected.signing.key.alias=tilestreak -Pandroid.injected.signing.key.password=TileStreak2026
+          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/routinepractice-release.keystore -Pandroid.injected.signing.store.password=RoutinePractice2026 -Pandroid.injected.signing.key.alias=routinepractice -Pandroid.injected.signing.key.password=RoutinePractice2026
 
       - name: Upload Test APK
         uses: actions/upload-artifact@v4
         with:
-          name: TileStreak-Test-APK
+          name: RoutinePractice-Test-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
         with:
-          name: TileStreak-PlayStore-AAB
+          name: RoutinePractice-PlayStore-AAB
           path: android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload Signing Keystore (Save Safely!)
         uses: actions/upload-artifact@v4
         with:
-          name: TileStreak-Keystore
-          path: android/app/tilestreak-release.keystore
+          name: RoutinePractice-Keystore
+          path: android/app/routinepractice-release.keystore
