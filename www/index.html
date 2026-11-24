@@ -12,14 +12,24 @@
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; min-height: 100vh; -webkit-tap-highlight-color: transparent; transition: background-color 0.2s ease, color 0.2s ease; }
     #appHeader { padding-top: max(26px, env(safe-area-inset-top)); }
     #bottomNav { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
-    body.light-theme { background-color: #f4f7f6; color: #0f172a; }
-    body.dark-theme { background-color: #0b1318; color: #f8fafc; }
+    body.theme-light { background-color: #f4f7f6; color: #0f172a; }
+    body.theme-dark { background-color: #0b1318; color: #f8fafc; }
+    body.theme-ocean { background-color: #071324; color: #f0f9ff; }
+    body.theme-sunset { background-color: #fdf6ee; color: #1c1917; }
+    body.theme-plum { background-color: #140c24; color: #faf5ff; }
     .tile-cell { transition: transform 0.12s ease, background-color 0.15s ease; }
     .tile-cell:hover { transform: scale(1.2); }
     .pop-in { animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
     @keyframes popIn { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .fade-out { animation: fadeOut 0.4s ease forwards; }
     @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece { position: fixed; top: -12px; width: 10px; height: 10px; border-radius: 2px; z-index: 95; pointer-events: none; animation: confettiFall 2.1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
   </style>
 </head>
 <body class="light-theme antialiased pb-32">
@@ -29,6 +39,33 @@
     <div class="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-2xl mb-4 pop-in text-4xl">🔥</div>
     <h1 class="text-3xl font-extrabold tracking-tight">Routine <span class="text-amber-300">Practice</span></h1>
     <p class="text-sm text-teal-100 mt-1 font-medium">Small steps. Unstoppable momentum.</p>
+  </div>
+
+  <!-- ==================== APP PIN LOCK OVERLAY ==================== -->
+  <div id="pinLockScreen" class="hidden fixed inset-0 z-[85] bg-slate-950 text-white flex flex-col items-center justify-center p-6">
+    <div class="w-16 h-16 rounded-2xl bg-teal-600/20 border border-teal-500/40 flex items-center justify-center text-3xl mb-4">🔒</div>
+    <h2 class="text-xl font-extrabold">Routine Practice Locked</h2>
+    <p id="pinLockHint" class="text-xs text-slate-400 mt-1 mb-6">Enter your 4-digit PIN to continue</p>
+    <div id="pinDots" class="flex gap-3 mb-8">
+      <span class="w-4 h-4 rounded-full border-2 border-teal-400"></span>
+      <span class="w-4 h-4 rounded-full border-2 border-teal-400"></span>
+      <span class="w-4 h-4 rounded-full border-2 border-teal-400"></span>
+      <span class="w-4 h-4 rounded-full border-2 border-teal-400"></span>
+    </div>
+    <div class="grid grid-cols-3 gap-3 max-w-[240px] w-full">
+      <button type="button" data-pin="1" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">1</button>
+      <button type="button" data-pin="2" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">2</button>
+      <button type="button" data-pin="3" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">3</button>
+      <button type="button" data-pin="4" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">4</button>
+      <button type="button" data-pin="5" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">5</button>
+      <button type="button" data-pin="6" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">6</button>
+      <button type="button" data-pin="7" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">7</button>
+      <button type="button" data-pin="8" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">8</button>
+      <button type="button" data-pin="9" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">9</button>
+      <button type="button" id="pinClearBtn" class="h-14 rounded-2xl bg-slate-900 text-slate-400 font-bold text-xs">CLR</button>
+      <button type="button" data-pin="0" class="pin-key h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 font-bold text-xl">0</button>
+      <button type="button" id="pinBackBtn" class="h-14 rounded-2xl bg-slate-900 text-slate-400 font-bold text-lg">⌫</button>
+    </div>
   </div>
 
   <!-- ==================== 2-STEP ONBOARDING ==================== -->
@@ -41,10 +78,10 @@
           <p class="text-sm text-slate-500">Everything you need to build lasting routines</p>
         </div>
         <div class="space-y-2">
-          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">🎯</div><div><p class="font-bold text-sm">Build new routines</p><p class="text-xs text-slate-500">Custom icons, colors, notes &amp; daily goals</p></div></div>
-          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">✓</div><div><p class="font-bold text-sm">Check it off &amp; earn XP</p><p class="text-xs text-slate-500">Every tap boosts your Momentum Level</p></div></div>
-          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">⏰</div><div><p class="font-bold text-sm">Daily Alarm Reminders</p><p class="text-xs text-slate-500">Never miss a check-in with custom alarms</p></div></div>
-          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">📤</div><div><p class="font-bold text-sm">Share &amp; Backup</p><p class="text-xs text-slate-500">Export/restore JSON &amp; share streak cards</p></div></div>
+          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">🎯</div><div><p class="font-bold text-sm">Focus Timer &amp; Weekly Goals</p><p class="text-xs text-slate-500">Built-in timer, custom categories &amp; flexible targets</p></div></div>
+          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">❄️</div><div><p class="font-bold text-sm">Streak Shields &amp; XP Rewards</p><p class="text-xs text-slate-500">Spend XP to protect your streak on busy days</p></div></div>
+          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">⏰</div><div><p class="font-bold text-sm">Daily Alarm &amp; Mood Journal</p><p class="text-xs text-slate-500">Check-in alarms plus quick daily mood reflections</p></div></div>
+          <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-sm"><div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">🔒</div><div><p class="font-bold text-sm">100% Private &amp; PIN Protected</p><p class="text-xs text-slate-500">Offline storage, JSON/CSV export &amp; optional PIN lock</p></div></div>
         </div>
       </div>
 
@@ -76,17 +113,18 @@
 
   <!-- ==================== TOP APP BAR ==================== -->
   <header id="appHeader" class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-lg shadow-sm">🔥</div>
-        <div>
-          <h1 id="headerGreeting" class="text-base sm:text-lg font-extrabold tracking-tight leading-none">Routine <span class="text-teal-600">Practice</span></h1>
-          <p id="headerSubtitle" class="text-[11px] text-slate-500 mt-0.5 font-medium">Daily Momentum</p>
+    <div class="max-w-3xl mx-auto px-3.5 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-lg shadow-sm shrink-0">🔥</div>
+        <div class="min-w-0 flex-1">
+          <h1 id="headerGreeting" class="text-sm sm:text-base font-extrabold tracking-tight leading-tight truncate">Routine <span class="text-teal-600">Practice</span></h1>
+          <p id="headerSubtitle" class="text-[11px] text-slate-500 font-medium truncate">Daily Momentum</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="xpLevelBadge" class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold">Lv 1 • 0 XP</span>
-        <button id="addHabitOpenBtn" type="button" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs sm:text-sm font-bold shadow-sm">+ New</button>
+      <div class="flex items-center gap-1 shrink-0">
+        <button id="shieldBadgeBtn" type="button" title="Streak Shields" class="px-2 py-1 rounded-full bg-sky-100 text-sky-800 text-[11px] font-extrabold whitespace-nowrap">❄️0</button>
+        <span id="xpLevelBadge" class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-extrabold whitespace-nowrap">Lv1 • 0XP</span>
+        <button id="addHabitOpenBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm whitespace-nowrap">+ New</button>
       </div>
     </div>
   </header>
@@ -95,14 +133,26 @@
     <div id="toastBanner" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-[70] bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl text-xs sm:text-sm font-bold pop-in"><span id="toastText">Saved!</span></div>
 
     <!-- ==================== TAB 1: TODAY ==================== -->
-    <section id="tab-habits" class="tab-view space-y-4">
-      <div class="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-3xl p-4 sm:p-5 text-white shadow-md space-y-2.5">
+    <section id="tab-habits" class="tab-view space-y-3.5">
+      <div id="momentumBannerCard" class="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-3xl p-4 sm:p-5 text-white shadow-md space-y-2.5">
         <div class="flex items-center justify-between">
           <div><p class="text-[11px] uppercase tracking-wider font-bold text-teal-100">Today's Momentum</p><h2 id="momentumHeadline" class="text-lg sm:text-xl font-extrabold">0 of 0 habits completed</h2></div>
           <span id="momentumPctBadge" class="px-3 py-1 rounded-full bg-white/20 text-sm font-extrabold">0%</span>
         </div>
         <div class="w-full h-2.5 rounded-full bg-black/20 overflow-hidden"><div id="momentumBar" class="h-full rounded-full bg-amber-300 transition-all duration-300" style="width: 0%"></div></div>
         <p id="dailyQuoteText" class="text-xs text-teal-50 italic">"Small daily improvements lead to stunning results."</p>
+      </div>
+
+      <!-- Daily Mood & Quick Reflection -->
+      <div class="theme-card bg-white border border-slate-200 rounded-2xl px-3 py-2.5 flex items-center justify-between gap-1.5 shadow-sm overflow-hidden">
+        <div class="flex items-center gap-1 min-w-0" id="moodBar">
+          <span class="text-[11px] font-bold text-slate-400 mr-0.5 shrink-0">Mood:</span>
+          <button type="button" data-mood="🔥" class="mood-btn w-7 h-7 rounded-lg bg-slate-100 text-sm flex items-center justify-center shrink-0">🔥</button>
+          <button type="button" data-mood="😊" class="mood-btn w-7 h-7 rounded-lg bg-slate-100 text-sm flex items-center justify-center shrink-0">😊</button>
+          <button type="button" data-mood="😐" class="mood-btn w-7 h-7 rounded-lg bg-slate-100 text-sm flex items-center justify-center shrink-0">😐</button>
+          <button type="button" data-mood="😴" class="mood-btn w-7 h-7 rounded-lg bg-slate-100 text-sm flex items-center justify-center shrink-0">😴</button>
+        </div>
+        <button id="openJournalBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-teal-50 text-teal-700 text-[11px] font-bold shrink-0 whitespace-nowrap">✍️ Note</button>
       </div>
 
       <div class="flex items-center gap-2">
@@ -112,6 +162,9 @@
         </div>
         <button id="toggleArchiveFilterBtn" type="button" class="theme-card px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 shrink-0">📦 Active</button>
       </div>
+
+      <!-- Category Filter Pills -->
+      <div id="categoryFilterBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
 
       <div id="habitsContainer" class="space-y-3.5"></div>
     </section>
@@ -123,20 +176,60 @@
         <div class="theme-card bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm"><p class="text-[10px] text-slate-500 font-bold uppercase">Total Done</p><p id="kpiTotalChecks" class="text-xl font-extrabold text-teal-600 mt-0.5">0</p></div>
         <div class="theme-card bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm"><p class="text-[10px] text-slate-500 font-bold uppercase">XP Level</p><p id="kpiLevelStat" class="text-xl font-extrabold text-emerald-600 mt-0.5">Lv 1</p></div>
       </div>
+
+      <!-- Last 7 Days Bar Chart -->
+      <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-extrabold">Last 7 Days Activity 📈</h2>
+          <button id="exportCsvBtn" type="button" class="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 text-[11px] font-bold">⬇️ CSV Report</button>
+        </div>
+        <div id="weeklyBarChart" class="grid grid-cols-7 gap-2 items-end h-28 pt-2"></div>
+      </div>
+
+      <!-- Milestone Trophy Badges -->
+      <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 space-y-3 shadow-sm">
+        <h2 class="text-base font-extrabold">Milestone Badges 🏆</h2>
+        <div id="badgesGrid" class="grid grid-cols-3 gap-2"></div>
+      </div>
+
+            <!-- Combined 84-Day Momentum Heatmap -->
+      <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-extrabold">All-Habits Heatmap 🟩</h2>
+          <span class="text-[10px] font-bold text-slate-400">Last 84 Days</span>
+        </div>
+        <div id="combinedHeatmapGrid" class="grid grid-flow-col grid-rows-7 gap-1.5 overflow-x-auto pb-1"></div>
+        <div class="flex items-center justify-end gap-1.5 text-[10px] font-bold text-slate-400">
+          <span>Less</span>
+          <span class="w-3 h-3 rounded-[3px] bg-slate-200 inline-block"></span>
+          <span class="w-3 h-3 rounded-[3px] bg-teal-200 inline-block"></span>
+          <span class="w-3 h-3 rounded-[3px] bg-emerald-400 inline-block"></span>
+          <span class="w-3 h-3 rounded-[3px] bg-teal-600 inline-block"></span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <!-- 84-Day Breakdown -->
       <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 space-y-3.5 shadow-sm">
-        <h2 class="text-lg font-extrabold">84-Day Consistency Breakdown 📊</h2>
+        <h2 class="text-base font-extrabold">84-Day Consistency Breakdown 📊</h2>
         <div id="statsBreakdown" class="space-y-3"></div>
+      </div>
+
+      <!-- Recent Mood & Reflections -->
+      <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 space-y-3 shadow-sm">
+        <h2 class="text-base font-extrabold">Recent Reflections ✍️</h2>
+        <div id="journalHistoryList" class="space-y-2 text-xs"></div>
       </div>
     </section>
 
     <!-- ==================== TAB 3: PLUS ==================== -->
     <section id="tab-pro" class="tab-view hidden space-y-4">
       <div class="theme-card bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-4 shadow-sm">
-        <div class="text-center"><span class="text-3xl">👑</span><h2 class="text-2xl font-extrabold mt-1">Unlock Routine <span class="text-teal-600">Practice</span> Plus</h2><p class="text-xs text-slate-500 mt-1">Unlimited habits, full calendar history &amp; themes</p></div>
+        <div class="text-center"><span class="text-3xl">👑</span><h2 class="text-2xl font-extrabold mt-1">Unlock Routine <span class="text-teal-600">Practice</span> Plus</h2><p class="text-xs text-slate-500 mt-1">Unlimited habits, CSV Excel reports, full history &amp; themes</p></div>
         <div id="planList" class="space-y-2.5">
-          <button type="button" data-plan="lifetime" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"></span><div><p class="font-bold text-base">Lifetime Pass</p><p class="text-xs text-slate-500">Pay once. Unlimited access forever.</p></div></div><span class="font-extrabold text-base">₹1,800.00</span></button>
-          <button type="button" data-plan="annual" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/70 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio w-5 h-5 rounded-full border-2 border-teal-600 flex items-center justify-center"><span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span></span><div><p class="font-bold text-base">Yearly <span class="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-teal-600 text-white uppercase">Save 75%</span></p><p class="text-xs text-slate-500">Recurring billing. Cancel anytime.</p></div></div><div class="text-right"><span class="font-extrabold text-base">₹600.00</span><p class="text-[11px] text-slate-500">/ year</p></div></button>
-          <button type="button" data-plan="monthly" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"></span><div><p class="font-bold text-base">Monthly</p><p class="text-xs text-slate-500">Cancel anytime.</p></div></div><div class="text-right"><span class="font-extrabold text-base">₹220.00</span><p class="text-[11px] text-slate-500">/ month</p></div></button>
+          <button type="button" data-plan="lifetime" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio shrink-0 w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"></span><div><p class="font-bold text-base">Lifetime Pass</p><p class="text-xs text-slate-500">Pay once. Unlimited access forever.</p></div></div><span class="font-extrabold text-base">₹1,800.00</span></button>
+          <button type="button" data-plan="annual" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/70 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio shrink-0 w-5 h-5 rounded-full border-2 border-teal-600 flex items-center justify-center"><span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span></span><div><p class="font-bold text-base">Yearly <span class="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-teal-600 text-white uppercase whitespace-nowrap inline-block">Save 75%</span></p><p class="text-xs text-slate-500">Recurring billing. Cancel anytime.</p></div></div><div class="text-right"><span class="font-extrabold text-base">₹600.00</span><p class="text-[11px] text-slate-500">/ year</p></div></button>
+          <button type="button" data-plan="monthly" class="plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between"><div class="flex items-center gap-3"><span class="plan-radio shrink-0 w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center"></span><div><p class="font-bold text-base">Monthly</p><p class="text-xs text-slate-500">Cancel anytime.</p></div></div><div class="text-right"><span class="font-extrabold text-base">₹220.00</span><p class="text-[11px] text-slate-500">/ month</p></div></button>
         </div>
         <button id="proContinueBtn" type="button" class="w-full py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-base shadow-lg">Continue</button>
         <button id="restorePurchaseBtn" type="button" class="w-full py-2 text-xs font-bold text-teal-600 hover:underline">Already subscribed? Restore Purchase</button>
@@ -165,6 +258,14 @@
           <button id="setReminderBtn" type="button" class="w-full px-4 py-3.5 flex items-center justify-between text-sm font-semibold">
             <span class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">🔔</span><span>Daily Check-In Reminders</span></span>
             <span class="text-xs text-slate-400" id="reminderStatusLabel">Off ›</span>
+          </button>
+          <button id="setShieldShopBtn" type="button" class="w-full px-4 py-3.5 flex items-center justify-between text-sm font-semibold">
+            <span class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">❄️</span><span>Streak Shields (XP Shop)</span></span>
+            <span class="text-xs text-slate-400" id="shieldCountLabel">0 Shields ›</span>
+          </button>
+          <button id="setPinBtn" type="button" class="w-full px-4 py-3.5 flex items-center justify-between text-sm font-semibold">
+            <span class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">🔐</span><span>App PIN Lock</span></span>
+            <span class="text-xs text-slate-400" id="pinStatusLabel">Off ›</span>
           </button>
           <button id="themeToggleBtn" type="button" class="w-full px-4 py-3.5 flex items-center justify-between text-sm font-semibold">
             <span class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">🎨</span><span>Theme</span></span>
@@ -225,7 +326,7 @@
             <span class="text-xs text-slate-400">›</span>
           </button>
         </div>
-        <p class="text-center text-[11px] text-slate-400 pt-2">Routine Practice 2.0 (Build 204)</p>
+        <p class="text-center text-[11px] text-slate-400 pt-2">Routine Practice 3.1 (Build 310)</p>
       </div>
     </section>
   </main>
@@ -240,7 +341,63 @@
     </div>
   </nav>
 
-  <!-- ==================== SETTINGS SUB-MODALS ==================== -->
+  <!-- ==================== MODALS ==================== -->
+  <!-- Focus Timer Modal -->
+  <div id="timerModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl pop-in text-center">
+      <div class="flex items-center justify-between"><h2 id="timerModalTitle" class="text-base font-extrabold truncate">Focus Timer ⏱️</h2><button id="closeTimerBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <div class="py-4 rounded-3xl bg-gradient-to-br from-teal-600 to-emerald-600 text-white shadow-inner">
+        <p class="text-[11px] uppercase tracking-wider font-bold text-teal-100">Deep Focus Session</p>
+        <p id="timerDisplay" class="text-5xl font-extrabold tracking-tight tabular-nums mt-1">15:00</p>
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <button type="button" data-mins="5" class="timer-preset py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">5m</button>
+        <button type="button" data-mins="15" class="timer-preset py-2 rounded-xl bg-teal-600 text-white font-bold text-xs">15m</button>
+        <button type="button" data-mins="25" class="timer-preset py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">25m</button>
+        <button type="button" data-mins="45" class="timer-preset py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">45m</button>
+      </div>
+      <div class="flex gap-2">
+        <button id="timerStartPauseBtn" type="button" class="flex-1 py-3 rounded-xl bg-teal-600 text-white font-bold text-sm shadow-md">▶ Start Focus</button>
+        <button id="timerResetBtn" type="button" class="px-4 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">↺</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streak Shield Shop Modal -->
+  <div id="shieldModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl pop-in">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">Streak Shields ❄️</h2><button id="closeShieldBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <p class="text-xs text-slate-500 leading-relaxed">Busy or sick day? Use a <b>Streak Shield</b> in any habit's Calendar (📅) to mark a Rest Day without breaking your streak.</p>
+      <div class="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-slate-800 flex items-center justify-between">
+        <div><p class="text-xs font-bold text-sky-700 uppercase">Your Inventory</p><p id="shieldModalInv" class="text-xl font-extrabold">0 Shields ❄️</p></div>
+        <div class="text-right"><p class="text-xs font-bold text-amber-600 uppercase">Available XP</p><p id="shieldModalXp" class="text-xl font-extrabold text-amber-600">0 XP</p></div>
+      </div>
+      <button id="buyShieldBtn" type="button" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-md">Buy 1 Streak Shield (150 XP)</button>
+    </div>
+  </div>
+
+  <!-- Daily Journal Modal -->
+  <div id="journalModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl pop-in">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">Today's Reflection ✍️</h2><button id="closeJournalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <textarea id="journalNoteInput" rows="3" maxlength="180" placeholder="How did your habits go today? Any small win?" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm focus:outline-none focus:border-teal-600"></textarea>
+      <button id="saveJournalBtn" type="button" class="w-full py-3 rounded-xl bg-teal-600 text-white font-bold text-sm">Save Reflection</button>
+    </div>
+  </div>
+
+  <!-- PIN Setup Modal -->
+  <div id="pinSetupModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl pop-in">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">App PIN Lock 🔐</h2><button id="closePinSetupBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <p class="text-xs text-slate-500">Protect your routines with a 4-digit PIN when opening the app.</p>
+      <input id="pinSetupInput" type="password" inputmode="numeric" maxlength="4" placeholder="Enter 4-digit PIN (e.g. 1234)" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-3 text-center text-lg font-extrabold tracking-widest focus:outline-none focus:border-teal-600" />
+      <div class="flex gap-2">
+        <button id="disablePinBtn" type="button" class="flex-1 py-2.5 rounded-xl bg-rose-100 text-rose-700 font-bold text-xs">Remove PIN</button>
+        <button id="savePinBtn" type="button" class="flex-1 py-2.5 rounded-xl bg-teal-600 text-white font-bold text-xs">Save PIN</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Reminder / Alarm Modal -->
   <div id="reminderModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl pop-in">
@@ -296,6 +453,20 @@
     </div>
   </div>
 
+    <!-- Display Theme Picker Modal -->
+  <div id="themeModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-3.5 shadow-2xl pop-in">
+      <div class="flex items-center justify-between"><h2 class="text-lg font-extrabold">Display Color Theme 🎨</h2><button id="closeThemeModalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <div class="grid grid-cols-1 gap-2" id="themeOptionsList">
+        <button type="button" data-theme="light" class="theme-opt-btn p-3 rounded-2xl border-2 border-slate-200 flex items-center justify-between text-left text-slate-800 bg-[#f4f7f6]"><span class="font-bold text-sm">☀️ Mint Light</span><span class="w-6 h-6 rounded-full bg-teal-600 border-2 border-white shadow"></span></button>
+        <button type="button" data-theme="dark" class="theme-opt-btn p-3 rounded-2xl border-2 border-slate-700 flex items-center justify-between text-left text-white bg-[#0b1318]"><span class="font-bold text-sm">🌙 Midnight Dark</span><span class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 shadow"></span></button>
+        <button type="button" data-theme="ocean" class="theme-opt-btn p-3 rounded-2xl border-2 border-sky-800 flex items-center justify-between text-left text-sky-50 bg-[#071324]"><span class="font-bold text-sm">🌊 Ocean Blue</span><span class="w-6 h-6 rounded-full bg-sky-500 border-2 border-slate-900 shadow"></span></button>
+        <button type="button" data-theme="sunset" class="theme-opt-btn p-3 rounded-2xl border-2 border-amber-200 flex items-center justify-between text-left text-stone-900 bg-[#fdf6ee]"><span class="font-bold text-sm">🌅 Sunset Warm</span><span class="w-6 h-6 rounded-full bg-amber-500 border-2 border-white shadow"></span></button>
+        <button type="button" data-theme="plum" class="theme-opt-btn p-3 rounded-2xl border-2 border-purple-800 flex items-center justify-between text-left text-purple-50 bg-[#140c24]"><span class="font-bold text-sm">💜 Royal Plum</span><span class="w-6 h-6 rounded-full bg-purple-500 border-2 border-slate-900 shadow"></span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Info / Feedback / Legal Modal -->
   <div id="infoModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-6 space-y-3 shadow-2xl pop-in">
@@ -306,26 +477,69 @@
 
   <!-- Calendar History Modal -->
   <div id="calendarModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl pop-in">
+    <div class="theme-card bg-white rounded-3xl max-w-sm w-full p-5 space-y-3.5 shadow-2xl pop-in">
       <div class="flex items-center justify-between"><h2 id="calModalTitle" class="text-lg font-extrabold truncate">History 📅</h2><button id="closeCalModalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
       <div class="flex items-center justify-between">
         <button id="calPrevMonthBtn" type="button" class="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">◀</button>
         <span id="calMonthLabel" class="font-bold text-sm">November 2026</span>
         <button id="calNextMonthBtn" type="button" class="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">▶</button>
       </div>
+      <div class="flex items-center justify-between bg-sky-50 border border-sky-200 rounded-xl px-3 py-2 text-slate-800">
+        <span class="text-[11px] font-bold">Mode: <span id="calModeText">✓ Complete Day</span></span>
+        <button id="calToggleShieldModeBtn" type="button" class="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold">❄️ Use Shield (<span id="calShieldCount">0</span>)</button>
+      </div>
       <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
       <div id="calDaysGrid" class="grid grid-cols-7 gap-1.5"></div>
+      <p class="text-[10px] text-center text-slate-400">Future dates are locked. Tap past days to edit.</p>
     </div>
   </div>
 
-  <!-- Add Habit Modal -->
-  <div id="habitModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="theme-card bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl pop-in">
-      <div class="flex items-center justify-between"><h2 class="text-xl font-extrabold">New Daily Habit</h2><button id="closeHabitModalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
-      <div class="space-y-1.5"><label for="habitNameInput" class="block text-xs font-bold text-slate-500 uppercase">Habit Name</label><input id="habitNameInput" type="text" maxlength="36" placeholder="e.g., Morning Walk, Read 10 Pages" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm focus:outline-none focus:border-teal-600" /></div>
-      <div class="space-y-1.5"><label for="habitNoteInput" class="block text-xs font-bold text-slate-500 uppercase">Note (Optional)</label><input id="habitNoteInput" type="text" maxlength="50" placeholder="e.g., After breakfast" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs focus:outline-none focus:border-teal-600" /></div>
-      <div class="space-y-1.5"><label class="block text-xs font-bold text-slate-500 uppercase">Icon</label><div id="iconPicker" class="flex flex-wrap gap-2"></div></div>
-      <div class="space-y-1.5"><label class="block text-xs font-bold text-slate-500 uppercase">Tile Color</label><div id="colorPicker" class="flex flex-wrap gap-2.5"></div></div>
+  <!-- Add / Edit Habit Modal -->
+  <div id="habitModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="theme-card bg-white rounded-3xl max-w-md w-full p-6 space-y-3.5 shadow-2xl pop-in my-auto">
+      <div class="flex items-center justify-between"><h2 id="habitModalTitle" class="text-xl font-extrabold">New Daily Habit</h2><button id="closeHabitModalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold">✕</button></div>
+      <div id="quickTemplatesWrap" class="space-y-1">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase">1-Tap Quick Templates</label>
+        <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+          <button type="button" data-tpl="morning" class="tpl-btn px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold shrink-0">🌅 6AM Wake</button>
+          <button type="button" data-tpl="workout" class="tpl-btn px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shrink-0">💪 Workout</button>
+          <button type="button" data-tpl="study" class="tpl-btn px-2.5 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-800 text-[11px] font-bold shrink-0">📚 Study 30m</button>
+          <button type="button" data-tpl="detox" class="tpl-btn px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-bold shrink-0">📵 Quit Reels</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" id="typeBuildBtn" class="py-2 rounded-xl border-2 border-teal-600 bg-teal-50 text-teal-800 text-xs font-extrabold">🎯 Build Habit</button>
+        <button type="button" id="typeQuitBtn" class="py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-600 text-xs font-extrabold">🚫 Quit Bad Habit</button>
+      </div>
+      <div class="space-y-1"><label for="habitNameInput" class="block text-xs font-bold text-slate-500 uppercase">Habit Name</label><input id="habitNameInput" type="text" maxlength="36" placeholder="e.g., Morning Walk, No Sugar" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm focus:outline-none focus:border-teal-600" /></div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="space-y-1"><label for="habitCueInput" class="block text-[11px] font-bold text-slate-500 uppercase">Cue (When?)</label><input id="habitCueInput" type="text" maxlength="32" placeholder="After morning tea" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:border-teal-600" /></div>
+        <div class="space-y-1"><label for="habitNoteInput" class="block text-[11px] font-bold text-slate-500 uppercase">Note (Optional)</label><input id="habitNoteInput" type="text" maxlength="40" placeholder="Keep it simple" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:border-teal-600" /></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="space-y-1">
+          <label for="habitCategorySelect" class="block text-xs font-bold text-slate-500 uppercase">Category</label>
+          <select id="habitCategorySelect" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-bold focus:outline-none focus:border-teal-600">
+            <option value="Health">🏃 Health</option>
+            <option value="Work">💼 Work</option>
+            <option value="Study">📚 Study</option>
+            <option value="Mind">🧘 Mind</option>
+            <option value="Finance">💰 Finance</option>
+          </select>
+        </div>
+        <div class="space-y-1">
+          <label for="habitGoalSelect" class="block text-xs font-bold text-slate-500 uppercase">Weekly Goal</label>
+          <select id="habitGoalSelect" class="theme-input w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-bold focus:outline-none focus:border-teal-600">
+            <option value="7">7 days / week</option>
+            <option value="6">6 days / week</option>
+            <option value="5">5 days / week</option>
+            <option value="4">4 days / week</option>
+            <option value="3">3 days / week</option>
+          </select>
+        </div>
+      </div>
+      <div class="space-y-1"><label class="block text-xs font-bold text-slate-500 uppercase">Icon</label><div id="iconPicker" class="flex flex-wrap gap-1.5"></div></div>
+      <div class="space-y-1"><label class="block text-xs font-bold text-slate-500 uppercase">Tile Color</label><div id="colorPicker" class="flex flex-wrap gap-2.5"></div></div>
       <button id="saveHabitBtn" type="button" class="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm shadow-lg">Save Habit</button>
     </div>
   </div>
@@ -356,29 +570,45 @@
         });
       } catch (_) {}
     }
+    function launchConfetti() {
+      const colors = ['#0d9488', '#10b981', '#f59e0b', '#0ea5e9', '#f43f5e', '#8b5cf6'];
+      for (let i = 0; i < 24; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.backgroundColor = colors[i % colors.length];
+        el.style.animationDelay = (Math.random() * 0.35) + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+      }
+    }
     let toastT = null;
     function showToast(msg) { const el = document.getElementById('toastBanner'); document.getElementById('toastText').textContent = msg; el.classList.remove('hidden'); if (toastT) clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hidden'), 2200); }
     function formatDateISO(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
     function getLastNDates(n) { const arr = [], t = new Date(); for (let i = n - 1; i >= 0; i--) { const d = new Date(t); d.setDate(t.getDate() - i); arr.push(formatDateISO(d)); } return arr; }
 
-    const QUOTES = ['"Small daily improvements lead to stunning results."', '"Success is the sum of small efforts repeated day in and day out."', '"Do not break the chain — one tile today keeps momentum alive!"'];
-    const ICONS = ['🏃', '📚', '💧', '🧘', '💪', '🥗', '💻', '🎸', '🌅', '✍️'];
+    const QUOTES = ['"Small daily improvements lead to stunning results."', '"Success is the sum of small efforts repeated day in and day out."', '"Do not break the chain — one tile today keeps momentum alive!"', '"Consistency beats intensity every single time."'];
+    const ICONS = ['🏃', '📚', '💧', '🧘', '💪', '🥗', '💻', '📵', '🌅', '✍️'];
     const COLORS = [{ hex: '#0d9488' }, { hex: '#10b981' }, { hex: '#f59e0b' }, { hex: '#0ea5e9' }, { hex: '#f43f5e' }, { hex: '#8b5cf6' }];
+    const CATEGORIES = ['All', 'Health', 'Work', 'Study', 'Mind', 'Finance'];
 
     function buildStarterHabits() {
       return [
-        { id: 'h1', name: 'Morning Walk (20m)', note: 'Fresh air & sunlight', icon: '🏃', color: '#0d9488', archived: false, logs: {} },
-        { id: 'h2', name: 'Read 10 Pages', note: 'Before bedtime', icon: '📚', color: '#f59e0b', archived: false, logs: {} },
-        { id: 'h3', name: 'Drink 8 Glasses Water', note: 'Stay hydrated', icon: '💧', color: '#0ea5e9', archived: false, logs: {} }
+        { id: 'h1', name: 'Morning Walk (20m)', note: 'Fresh air & sunlight', category: 'Health', weeklyGoal: 7, icon: '🏃', color: '#0d9488', archived: false, logs: {} },
+        { id: 'h2', name: 'Read 10 Pages', note: 'Before bedtime', category: 'Study', weeklyGoal: 6, icon: '📚', color: '#f59e0b', archived: false, logs: {} },
+        { id: 'h3', name: 'Drink 8 Glasses Water', note: 'Stay hydrated', category: 'Health', weeklyGoal: 7, icon: '💧', color: '#0ea5e9', archived: false, logs: {} }
       ];
     }
 
     const state = {
-      habits: [], search: '', showArchived: false, theme: 'light', onboardStep: 1,
+      habits: [], search: '', categoryFilter: 'All', showArchived: false, theme: 'light', onboardStep: 1,
       onboarded: false, userName: '', userFocus: 'Health & Fitness',
       alarmOn: false, reminderTime: '08:00', soundOn: true, compactGrid: false,
-      isPro: false, selectedPlan: 'annual', newIcon: ICONS[0], newColor: COLORS[0].hex, activeTab: 'habits',
-      calHabitId: null, calYear: new Date().getFullYear(), calMonth: new Date().getMonth(), lastAlarmMinute: ''
+      isPro: false, selectedPlan: 'annual', newIcon: ICONS[0], newColor: COLORS[0].hex, newHabitType: 'build', activeTab: 'habits',
+      calHabitId: null, calYear: new Date().getFullYear(), calMonth: new Date().getMonth(), calShieldMode: false,
+      lastAlarmMinute: '', editHabitId: null,
+      shields: 1, spentXp: 0, bonusXp: 0, timerSessions: 0,
+      journal: {}, appPin: ''
     };
     try {
       const s = JSON.parse(localStorage.getItem('routinepractice_v6_state') || '{}');
@@ -390,6 +620,12 @@
       if (typeof s.soundOn === 'boolean') state.soundOn = s.soundOn;
       if (typeof s.compactGrid === 'boolean') state.compactGrid = s.compactGrid;
       if (s.isPro) state.isPro = true;
+      if (typeof s.shields === 'number') state.shields = s.shields;
+      if (typeof s.spentXp === 'number') state.spentXp = s.spentXp;
+      if (typeof s.bonusXp === 'number') state.bonusXp = s.bonusXp;
+      if (typeof s.timerSessions === 'number') state.timerSessions = s.timerSessions;
+      if (s.journal && typeof s.journal === 'object') state.journal = s.journal;
+      if (s.appPin) state.appPin = s.appPin;
     } catch (_) {}
     if (state.habits.length === 0) state.habits = buildStarterHabits();
 
@@ -398,25 +634,66 @@
         localStorage.setItem('routinepractice_v6_state', JSON.stringify({
           habits: state.habits, theme: state.theme, onboarded: state.onboarded,
           userName: state.userName, userFocus: state.userFocus, alarmOn: state.alarmOn,
-          reminderTime: state.reminderTime, soundOn: state.soundOn, compactGrid: state.compactGrid, isPro: state.isPro
+          reminderTime: state.reminderTime, soundOn: state.soundOn, compactGrid: state.compactGrid,
+          isPro: state.isPro, shields: state.shields, spentXp: state.spentXp, bonusXp: state.bonusXp,
+          timerSessions: state.timerSessions, journal: state.journal, appPin: state.appPin
         }));
       } catch (_) {}
     }
 
+    function getTotalEarnedXp() {
+      let totalChecks = 0;
+      state.habits.forEach(h => { totalChecks += Object.values(h.logs).filter(v => v === true).length; });
+      return Math.max(0, (totalChecks * 10) + state.bonusXp - state.spentXp);
+    }
+
+    const THEME_META = {
+      light: { label: 'Mint Light ›', isDark: false, card: 'bg-white border-slate-200 text-slate-900', header: 'bg-white/90 border-slate-200', nav: 'bg-white/95 border-slate-200', grad: 'from-teal-600 to-emerald-600' },
+      dark: { label: 'Midnight Dark ›', isDark: true, card: 'bg-slate-800 border-slate-700 text-white', header: 'bg-slate-900/90 border-slate-800', nav: 'bg-slate-900/95 border-slate-800', grad: 'from-teal-600 to-emerald-600' },
+      ocean: { label: 'Ocean Blue ›', isDark: true, card: 'bg-[#0f213a] border-sky-900 text-sky-50', header: 'bg-[#071324]/95 border-sky-900/80', nav: 'bg-[#071324]/95 border-sky-900/80', grad: 'from-sky-600 to-cyan-600' },
+      sunset: { label: 'Sunset Warm ›', isDark: false, card: 'bg-white border-amber-200 text-stone-900', header: 'bg-[#fdf6ee]/95 border-amber-200', nav: 'bg-[#fdf6ee]/95 border-amber-200', grad: 'from-amber-500 to-rose-500' },
+      plum: { label: 'Royal Plum ›', isDark: true, card: 'bg-[#1f1336] border-purple-900 text-purple-50', header: 'bg-[#140c24]/95 border-purple-900/80', nav: 'bg-[#140c24]/95 border-purple-900/80', grad: 'from-purple-600 to-fuchsia-600' }
+    };
+    function isDarkTheme() { return Boolean((THEME_META[state.theme] || THEME_META.light).isDark); }
+
+    function renderPlanCards() {
+      const dark = isDarkTheme();
+      document.querySelectorAll('.plan-card').forEach(card => {
+        const active = card.dataset.plan === state.selectedPlan, r = card.querySelector('.plan-radio');
+        if (dark) {
+          card.className = active
+            ? 'plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-400 bg-teal-900/50 text-white flex items-center justify-between gap-2'
+            : 'plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-600 bg-slate-800/60 text-white flex items-center justify-between gap-2';
+        } else {
+          card.className = active
+            ? 'plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/80 text-slate-900 flex items-center justify-between gap-2'
+            : 'plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 bg-white text-slate-900 flex items-center justify-between gap-2';
+        }
+        r.className = active
+          ? 'plan-radio shrink-0 w-5 h-5 rounded-full border-2 border-teal-500 flex items-center justify-center'
+          : 'plan-radio shrink-0 w-5 h-5 rounded-full border-2 border-slate-400 flex items-center justify-center';
+        r.innerHTML = active ? '<span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>' : '';
+      });
+    }
+
     function applyTheme() {
-      const isDark = state.theme === 'dark';
-      document.body.className = `${isDark ? 'dark-theme' : 'light-theme'} antialiased pb-32`;
-      document.getElementById('appHeader').className = isDark ? 'sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800' : 'sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200';
-      document.getElementById('bottomNav').className = isDark ? 'fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800' : 'fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200';
-      document.getElementById('themeStatusLabel').textContent = isDark ? 'Dark ›' : 'Light ›';
+      const t = THEME_META[state.theme] || THEME_META.light;
+      const dark = t.isDark;
+      document.body.className = `theme-${THEME_META[state.theme] ? state.theme : 'light'} antialiased pb-32`;
+      document.getElementById('appHeader').className = `sticky top-0 z-30 backdrop-blur-md border-b ${t.header}`;
+      document.getElementById('bottomNav').className = `fixed bottom-0 inset-x-0 z-40 backdrop-blur-md border-t ${t.nav}`;
+      const mb = document.getElementById('momentumBannerCard');
+      if (mb) mb.className = `bg-gradient-to-r ${t.grad} rounded-3xl p-4 sm:p-5 text-white shadow-md space-y-2.5`;
+      document.getElementById('themeStatusLabel').textContent = t.label;
       document.querySelectorAll('.theme-card').forEach(el => {
-        if (isDark) { el.classList.remove('bg-white', 'border-slate-200'); el.classList.add('bg-slate-800', 'border-slate-700', 'text-white'); }
-        else { el.classList.remove('bg-slate-800', 'border-slate-700', 'text-white'); el.classList.add('bg-white', 'border-slate-200'); }
+        el.classList.remove('bg-white', 'border-slate-200', 'bg-slate-800', 'border-slate-700', 'text-white', 'text-slate-900', 'bg-[#0f213a]', 'border-sky-900', 'text-sky-50', 'border-amber-200', 'text-stone-900', 'bg-[#1f1336]', 'border-purple-900', 'text-purple-50');
+        t.card.split(' ').forEach(c => el.classList.add(c));
       });
       document.querySelectorAll('.theme-input').forEach(el => {
-        if (isDark) { el.classList.remove('bg-white', 'bg-slate-50', 'border-slate-200'); el.classList.add('bg-slate-800', 'border-slate-700', 'text-white'); }
-        else { el.classList.remove('bg-slate-800', 'border-slate-700', 'text-white'); el.classList.add('bg-white', 'border-slate-200'); }
+        if (dark) { el.classList.remove('bg-white', 'bg-slate-50', 'border-slate-200', 'text-slate-900'); el.classList.add('bg-slate-800', 'border-slate-700', 'text-white'); }
+        else { el.classList.remove('bg-slate-800', 'border-slate-700', 'text-white'); el.classList.add('bg-white', 'border-slate-200', 'text-slate-900'); }
       });
+      renderPlanCards();
     }
 
     function updateSettingsLabels() {
@@ -424,6 +701,8 @@
       document.getElementById('overviewModeLabel').textContent = state.compactGrid ? 'Compact (42d) ›' : 'Detailed (84d) ›';
       document.getElementById('reminderStatusLabel').textContent = state.alarmOn ? `${state.reminderTime} ›` : 'Off ›';
       document.getElementById('archivedCountLabel').textContent = `${state.habits.filter(h => h.archived).length} ›`;
+      document.getElementById('shieldCountLabel').textContent = `${state.shields} Shields ›`;
+      document.getElementById('pinStatusLabel').textContent = state.appPin ? 'Active ›' : 'Off ›';
       const alarmBtn = document.getElementById('toggleAlarmEnabledBtn');
       alarmBtn.textContent = state.alarmOn ? 'ON' : 'OFF';
       alarmBtn.className = state.alarmOn ? 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-teal-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700';
@@ -449,21 +728,46 @@
       if (tab === 'settings') updateSettingsLabels();
     }
 
-    function computeStreak(logs) {
+    function computeStreak(logs, habit = null) {
+      if (habit && habit.type === 'quit') {
+        const start = habit.startDate || formatDateISO(new Date());
+        let s = 0, d = new Date();
+        for (let i = 0; i < 365; i++) {
+          const k = formatDateISO(d);
+          if (k < start) break;
+          if (logs[k] === 'slip') break;
+          s++;
+          d.setDate(d.getDate() - 1);
+        }
+        return s;
+      }
       let s = 0, d = new Date();
       if (!logs[formatDateISO(d)]) d.setDate(d.getDate() - 1);
-      while (logs[formatDateISO(d)]) { s++; d.setDate(d.getDate() - 1); }
+      while (logs[formatDateISO(d)] === true || logs[formatDateISO(d)] === 'freeze') { s++; d.setDate(d.getDate() - 1); }
       return s;
     }
 
+    function getWeeklyCount(habit) {
+      const dates = getLastNDates(7);
+      return dates.filter(ds => habit.logs[ds] === true).length;
+    }
+
     function openCalendar(habitId) {
-      state.calHabitId = habitId; const now = new Date(); state.calYear = now.getFullYear(); state.calMonth = now.getMonth();
+      state.calHabitId = habitId; state.calShieldMode = false;
+      const now = new Date(); state.calYear = now.getFullYear(); state.calMonth = now.getMonth();
       renderCalendar(); document.getElementById('calendarModal').classList.remove('hidden');
     }
 
     function renderCalendar() {
       const habit = state.habits.find(h => h.id === state.calHabitId); if (!habit) return;
+      const todayKey = formatDateISO(new Date());
       document.getElementById('calModalTitle').textContent = `${habit.icon} ${habit.name}`;
+      document.getElementById('calShieldCount').textContent = state.shields;
+      document.getElementById('calModeText').textContent = state.calShieldMode ? '❄️ Shield (Rest Day)' : '✓ Complete Day';
+      document.getElementById('calToggleShieldModeBtn').className = state.calShieldMode
+        ? 'px-2.5 py-1 rounded-lg bg-amber-500 text-white text-[11px] font-bold'
+        : 'px-2.5 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold';
+
       const d = new Date(state.calYear, state.calMonth, 1);
       document.getElementById('calMonthLabel').textContent = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       const grid = document.getElementById('calDaysGrid'); grid.innerHTML = '';
@@ -471,14 +775,41 @@
       for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
       for (let day = 1; day <= daysInMonth; day++) {
         const cur = new Date(state.calYear, state.calMonth, day), key = formatDateISO(cur);
-        const btn = document.createElement('button'); btn.type = 'button'; const done = Boolean(habit.logs[key]);
-        btn.className = `h-9 rounded-xl text-xs font-bold ${done ? 'text-white shadow-sm' : 'bg-slate-100 text-slate-700'}`;
-        if (done) btn.style.backgroundColor = habit.color;
-        btn.textContent = day;
-        btn.addEventListener('click', () => {
-          if (habit.logs[key]) { delete habit.logs[key]; playCheckSound(false); } else { habit.logs[key] = true; playCheckSound(true); }
-          saveState(); renderCalendar(); renderAll();
-        });
+        const isFuture = key > todayKey;
+        const val = habit.logs[key];
+        const btn = document.createElement('button'); btn.type = 'button';
+        btn.disabled = isFuture;
+        if (isFuture) {
+          btn.className = 'h-9 rounded-xl text-xs font-bold bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed';
+        } else if (val === 'freeze') {
+          btn.className = 'h-9 rounded-xl text-xs font-bold bg-sky-500 text-white shadow-sm';
+        } else if (val === true) {
+          btn.className = 'h-9 rounded-xl text-xs font-bold text-white shadow-sm';
+          btn.style.backgroundColor = habit.color;
+        } else {
+          btn.className = 'h-9 rounded-xl text-xs font-bold bg-slate-100 text-slate-700';
+        }
+        btn.textContent = val === 'freeze' ? '❄️' : day;
+        if (!isFuture) {
+          btn.addEventListener('click', () => {
+            if (state.calShieldMode) {
+              if (habit.logs[key] === 'freeze') {
+                delete habit.logs[key]; state.shields++; playCheckSound(false);
+              } else {
+                if (state.shields <= 0) { showToast('No shields left! Buy one with XP in Settings.'); return; }
+                habit.logs[key] = 'freeze'; state.shields--; playCheckSound(true); showToast('❄️ Streak Shield applied!');
+              }
+            } else {
+              if (habit.logs[key]) {
+                if (habit.logs[key] === 'freeze') state.shields++;
+                delete habit.logs[key]; playCheckSound(false);
+              } else {
+                habit.logs[key] = true; playCheckSound(true);
+              }
+            }
+            saveState(); renderCalendar(); renderAll(); updateSettingsLabels();
+          });
+        }
         grid.appendChild(btn);
       }
     }
@@ -487,9 +818,14 @@
       const canvas = document.createElement('canvas'); canvas.width = 760; canvas.height = 400; const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#042f2e'; ctx.fillRect(0, 0, 760, 400); ctx.fillStyle = '#134e4a'; ctx.beginPath(); ctx.roundRect(24, 24, 712, 352, 28); ctx.fill();
       ctx.fillStyle = '#ffffff'; ctx.font = 'bold 34px Inter, sans-serif'; ctx.fillText(`${habit.icon} ${habit.name}`, 56, 86);
-      const streak = computeStreak(habit.logs), total = Object.values(habit.logs).filter(Boolean).length;
+      const streak = computeStreak(habit.logs, habit), total = Object.values(habit.logs).filter(v => v === true).length;
       ctx.fillStyle = '#99f6e4'; ctx.font = '600 20px Inter, sans-serif'; ctx.fillText(`${streak} day streak 🔥  •  ${total} completions  •  Routine Practice`, 56, 122);
-      getLastNDates(84).forEach((ds, idx) => { const col = Math.floor(idx / 7), row = idx % 7; ctx.fillStyle = habit.logs[ds] ? habit.color : '#115e59'; ctx.beginPath(); ctx.roundRect(56 + col * 50, 156 + row * 28, 38, 22, 5); ctx.fill(); });
+      getLastNDates(84).forEach((ds, idx) => {
+        const col = Math.floor(idx / 7), row = idx % 7;
+        const val = habit.logs[ds];
+        ctx.fillStyle = val === 'freeze' ? '#38bdf8' : (val === true ? habit.color : '#115e59');
+        ctx.beginPath(); ctx.roundRect(56 + col * 50, 156 + row * 28, 38, 22, 5); ctx.fill();
+      });
       const link = document.createElement('a'); link.download = `routinepractice_${habit.name.replace(/\s+/g, '_').toLowerCase()}.png`;
       link.href = canvas.toDataURL('image/png'); link.click(); showToast('📸 Streak card saved!');
     }
@@ -514,57 +850,262 @@
       document.getElementById('infoModal').classList.remove('hidden');
     }
 
+    function renderMoodBar() {
+      const todayKey = formatDateISO(new Date());
+      const todayEntry = state.journal[todayKey] || {};
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        const active = todayEntry.mood === btn.dataset.mood;
+        btn.className = active
+          ? 'mood-btn w-8 h-8 rounded-xl bg-teal-600 text-white text-base flex items-center justify-center ring-2 ring-teal-300 scale-110 transition-transform'
+          : 'mood-btn w-8 h-8 rounded-xl bg-slate-100 text-base flex items-center justify-center';
+      });
+    }
+
+    function renderCategoryBar() {
+      const bar = document.getElementById('categoryFilterBar');
+      bar.innerHTML = '';
+      CATEGORIES.forEach(cat => {
+        const active = state.categoryFilter === cat;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = cat;
+        btn.className = active
+          ? 'px-3 py-1.5 rounded-full bg-teal-600 text-white text-xs font-bold shrink-0 shadow-sm'
+          : 'theme-card px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-bold shrink-0';
+        btn.addEventListener('click', () => { state.categoryFilter = cat; renderAll(); });
+        bar.appendChild(btn);
+      });
+    }
+
     function renderStats() {
       let best = 0, total = 0;
-      state.habits.forEach(h => { const s = computeStreak(h.logs); if (s > best) best = s; total += Object.values(h.logs).filter(Boolean).length; });
-      const lv = Math.floor((total * 10) / 100) + 1;
-      document.getElementById('kpiBestStreak').textContent = `${best}d 🔥`; document.getElementById('kpiTotalChecks').textContent = total; document.getElementById('kpiLevelStat').textContent = `Lv ${lv}`;
+      state.habits.forEach(h => { const s = computeStreak(h.logs, h); if (s > best) best = s; total += Object.values(h.logs).filter(v => v === true).length; });
+      const xp = getTotalEarnedXp(), lv = Math.floor(xp / 100) + 1;
+      document.getElementById('kpiBestStreak').textContent = `${best}d 🔥`;
+      document.getElementById('kpiTotalChecks').textContent = total;
+      document.getElementById('kpiLevelStat').textContent = `Lv ${lv}`;
+
+      // 7-day bar chart
+      const chart = document.getElementById('weeklyBarChart'); chart.innerHTML = '';
+      const last7 = getLastNDates(7);
+      const maxH = Math.max(1, state.habits.filter(h => !h.archived).length);
+      last7.forEach(ds => {
+        const done = state.habits.filter(h => h.logs[ds] === true).length;
+        const pct = Math.min(100, Math.round((done / maxH) * 100));
+        const dayLbl = new Date(ds + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'narrow' });
+        const col = document.createElement('div'); col.className = 'flex flex-col items-center gap-1 h-full justify-end';
+        col.innerHTML = `<span class="text-[10px] font-bold text-slate-400">${done}</span><div class="w-full bg-slate-100 rounded-lg h-16 flex items-end overflow-hidden"><div class="w-full rounded-lg bg-gradient-to-t from-teal-600 to-emerald-400 transition-all" style="height:${Math.max(8, pct)}%"></div></div><span class="text-[10px] font-bold text-slate-500">${dayLbl}</span>`;
+        chart.appendChild(col);
+      });
+
+      // Milestone badges
+      const badges = [
+        { icon: '🌱', title: 'First Step', req: '1+ Done', ok: total >= 1 },
+        { icon: '🔥', title: '7-Day Streak', req: '7d Streak', ok: best >= 7 },
+        { icon: '⚡', title: '21-Day Habit', req: '21d Streak', ok: best >= 21 },
+        { icon: '👑', title: '30-Day Master', req: '30d Streak', ok: best >= 30 },
+        { icon: '⏱️', title: 'Focus Monk', req: 'Use Timer', ok: state.timerSessions >= 1 },
+        { icon: '💎', title: '100 Check-ins', req: '100 Done', ok: total >= 100 }
+      ];
+      const bg = document.getElementById('badgesGrid'); bg.innerHTML = '';
+      badges.forEach(b => {
+        const card = document.createElement('div');
+        card.className = b.ok
+          ? 'p-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-center text-slate-800'
+          : 'p-2.5 rounded-2xl bg-slate-100 border border-slate-200 text-center opacity-50 text-slate-500';
+        card.innerHTML = `<div class="text-2xl">${b.icon}</div><p class="text-[11px] font-extrabold mt-1 leading-tight">${b.title}</p><p class="text-[9px] font-semibold mt-0.5">${b.ok ? 'Unlocked' : b.req}</p>`;
+        bg.appendChild(card);
+      });
+
+      // Combined 84-day heatmap
+      const hm = document.getElementById('combinedHeatmapGrid');
+      if (hm) {
+        hm.innerHTML = '';
+        const isDark = isDarkTheme();
+        const activeH = state.habits.filter(h => !h.archived);
+        const totalActive = Math.max(1, activeH.length);
+        getLastNDates(84).forEach(ds => {
+          let doneCount = 0;
+          activeH.forEach(h => {
+            if (h.type === 'quit') {
+              if ((!h.startDate || ds >= h.startDate) && h.logs[ds] !== 'slip') doneCount++;
+            } else if (h.logs[ds] === true || h.logs[ds] === 'freeze') {
+              doneCount++;
+            }
+          });
+          const ratio = activeH.length ? doneCount / totalActive : 0;
+          const cell = document.createElement('div');
+          cell.title = `${ds}: ${doneCount}/${activeH.length}`;
+          cell.className = 'w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px]';
+          if (ratio === 0) cell.style.backgroundColor = isDark ? '#1e293b' : '#e2e8f0';
+          else if (ratio < 0.5) cell.style.backgroundColor = '#99f6e4';
+          else if (ratio < 1) cell.style.backgroundColor = '#34d399';
+          else cell.style.backgroundColor = '#0d9488';
+          hm.appendChild(cell);
+        });
+      }
+
+      // 84-day breakdown
       const bd = document.getElementById('statsBreakdown'); bd.innerHTML = '';
       state.habits.forEach(h => {
-        const count = Object.values(h.logs).filter(Boolean).length, pct = Math.min(100, Math.round((count / 84) * 100));
+        const count = Object.values(h.logs).filter(v => v === true).length, pct = Math.min(100, Math.round((count / 84) * 100));
         const row = document.createElement('div'); row.className = 'space-y-1';
         row.innerHTML = `<div class="flex justify-between text-xs font-bold"><span>${h.icon} ${h.name}</span><span>${count} / 84 days (${pct}%)</span></div><div class="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${h.color}"></div></div>`;
         bd.appendChild(row);
       });
+
+      // Reflections list
+      const jl = document.getElementById('journalHistoryList'); jl.innerHTML = '';
+      const entries = Object.entries(state.journal).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 5);
+      if (!entries.length) {
+        jl.innerHTML = '<p class="text-slate-400">No reflections yet. Tap Mood or Daily Note on the Today tab!</p>';
+      } else {
+        entries.forEach(([dt, info]) => {
+          const item = document.createElement('div');
+          item.className = 'p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 flex items-start gap-2';
+          item.innerHTML = `<span class="text-lg leading-none">${info.mood || '📝'}</span><div><p class="font-bold text-[11px] text-slate-500">${dt}</p><p class="text-xs font-medium mt-0.5">${info.note || 'Mood logged'}</p></div>`;
+          jl.appendChild(item);
+        });
+      }
+    }
+
+    function updateHabitTypeUI() {
+      const isQuit = state.newHabitType === 'quit';
+      document.getElementById('typeBuildBtn').className = !isQuit
+        ? 'py-2 rounded-xl border-2 border-teal-600 bg-teal-50 text-teal-800 text-xs font-extrabold'
+        : 'py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-600 text-xs font-extrabold';
+      document.getElementById('typeQuitBtn').className = isQuit
+        ? 'py-2 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-800 text-xs font-extrabold'
+        : 'py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-600 text-xs font-extrabold';
+    }
+
+    function openHabitModal(habit = null) {
+      const nameInput = document.getElementById('habitNameInput');
+      const noteInput = document.getElementById('habitNoteInput');
+      const cueInput = document.getElementById('habitCueInput');
+      const catSel = document.getElementById('habitCategorySelect');
+      const goalSel = document.getElementById('habitGoalSelect');
+      document.getElementById('quickTemplatesWrap').classList.toggle('hidden', Boolean(habit));
+      if (habit) {
+        state.editHabitId = habit.id;
+        document.getElementById('habitModalTitle').textContent = 'Edit Habit';
+        nameInput.value = habit.name;
+        noteInput.value = habit.note || '';
+        cueInput.value = habit.cue || '';
+        catSel.value = habit.category || 'Health';
+        goalSel.value = String(habit.weeklyGoal || 7);
+        state.newHabitType = habit.type || 'build';
+        state.newIcon = habit.icon;
+        state.newColor = habit.color;
+      } else {
+        state.editHabitId = null;
+        document.getElementById('habitModalTitle').textContent = 'New Daily Habit';
+        nameInput.value = '';
+        noteInput.value = '';
+        cueInput.value = '';
+        catSel.value = 'Health';
+        goalSel.value = '7';
+        state.newHabitType = 'build';
+      }
+      updateHabitTypeUI();
+      renderPickers();
+      document.getElementById('habitModal').classList.remove('hidden');
+      setTimeout(() => nameInput.focus(), 60);
     }
 
     function renderAll() {
-      const todayKey = formatDateISO(new Date()), dates = getLastNDates(state.compactGrid ? 42 : 84), isDark = state.theme === 'dark';
+      const todayKey = formatDateISO(new Date()), dates = getLastNDates(state.compactGrid ? 42 : 84), isDark = isDarkTheme();
       const activeHabits = state.habits.filter(h => !h.archived);
-      let todayDone = 0, totalChecks = 0;
-      activeHabits.forEach(h => { if (h.logs[todayKey]) todayDone++; });
-      state.habits.forEach(h => { totalChecks += Object.values(h.logs).filter(Boolean).length; });
+      let todayDone = 0;
+      activeHabits.forEach(h => { if (h.type === 'quit' ? h.logs[todayKey] !== 'slip' : h.logs[todayKey] === true) todayDone++; });
 
       const pct = activeHabits.length ? Math.round((todayDone / activeHabits.length) * 100) : 0;
       document.getElementById('momentumHeadline').textContent = `${todayDone} of ${activeHabits.length} habits completed`;
       document.getElementById('momentumPctBadge').textContent = `${pct}%`; document.getElementById('momentumBar').style.width = `${pct}%`;
-      const xp = totalChecks * 10, lv = Math.floor(xp / 100) + 1;
-      document.getElementById('xpLevelBadge').textContent = `Lv ${lv} • ${xp} XP`;
 
-      const filtered = state.habits.filter(h => Boolean(h.archived) === state.showArchived && h.name.toLowerCase().includes(state.search.toLowerCase()));
+      const xp = getTotalEarnedXp(), lv = Math.floor(xp / 100) + 1;
+      document.getElementById('xpLevelBadge').textContent = `Lv${lv} • ${xp}XP`;
+      document.getElementById('shieldBadgeBtn').textContent = `❄️${state.shields}`;
+
+      renderMoodBar();
+      renderCategoryBar();
+
+      const filtered = state.habits.filter(h => {
+        const archMatch = Boolean(h.archived) === state.showArchived;
+        const searchMatch = h.name.toLowerCase().includes(state.search.toLowerCase());
+        const catMatch = state.categoryFilter === 'All' || (h.category || 'Health') === state.categoryFilter;
+        return archMatch && searchMatch && catMatch;
+      });
+
       const container = document.getElementById('habitsContainer'); container.innerHTML = '';
-      if (!filtered.length) { container.innerHTML = `<div class="rounded-3xl p-8 text-center border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}"><p class="font-bold">${state.showArchived ? 'No archived habits' : 'No habits found'}</p></div>`; return; }
+      if (!filtered.length) {
+        container.innerHTML = `<div class="rounded-3xl p-8 text-center border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}"><p class="font-bold">${state.showArchived ? 'No archived habits' : 'No habits found'}</p></div>`;
+        return;
+      }
 
       filtered.forEach(habit => {
-        const doneToday = Boolean(habit.logs[todayKey]), streak = computeStreak(habit.logs), total = Object.values(habit.logs).filter(Boolean).length;
-        const card = document.createElement('div'); card.className = `rounded-3xl p-4 sm:p-5 space-y-3 border shadow-sm ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`;
+        const isQuit = habit.type === 'quit';
+        const slippedToday = habit.logs[todayKey] === 'slip';
+        const doneToday = isQuit ? !slippedToday : (habit.logs[todayKey] === true);
+        const shieldedToday = habit.logs[todayKey] === 'freeze';
+        const streak = computeStreak(habit.logs, habit), total = Object.values(habit.logs).filter(v => v === true).length;
+        const wkDone = getWeeklyCount(habit), wkGoal = habit.weeklyGoal || 7;
+        const cueTxt = habit.cue ? ` • ${habit.cue}` : '';
+        const subMeta = isQuit ? `${streak}d clean 🛡️ • ${habit.category || 'Mind'}${cueTxt}` : `${streak}d 🔥 • ${wkDone}/${wkGoal} wk • ${habit.category || 'Health'}${cueTxt}`;
+        const tMeta = THEME_META[state.theme] || THEME_META.light;
+        const card = document.createElement('div'); card.className = `rounded-3xl p-4 space-y-2.5 border shadow-sm ${tMeta.card}`;
         const top = document.createElement('div'); top.className = 'flex items-center justify-between gap-2';
-        top.innerHTML = `<div class="flex items-center gap-3 min-w-0"><div class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${isDark ? 'bg-slate-900' : 'bg-slate-100'}">${habit.icon}</div><div class="min-w-0"><h3 class="text-base font-bold truncate">${habit.name}</h3><p class="text-xs text-slate-500 font-medium truncate">${streak}d streak 🔥 • ${total} total${habit.note ? ' • ' + habit.note : ''}</p></div></div>`;
+        top.innerHTML = `<div class="flex items-center gap-2.5 min-w-0 flex-1"><button type="button" class="edit-habit-trigger w-10 h-10 rounded-2xl flex items-center justify-center text-xl shrink-0 ${isDark ? 'bg-slate-900/70' : 'bg-slate-100'}">${habit.icon}</button><div class="min-w-0 flex-1"><h3 class="text-sm sm:text-base font-bold truncate">${habit.name}</h3><p class="text-[11px] ${isDark ? 'text-slate-300' : 'text-slate-500'} font-medium truncate">${subMeta}</p></div></div>`;
+        top.querySelector('.edit-habit-trigger').addEventListener('click', () => openHabitModal(habit));
 
-        const btns = document.createElement('div'); btns.className = 'flex items-center gap-1 shrink-0';
-        const calBtn = document.createElement('button'); calBtn.type = 'button'; calBtn.className = `w-8 h-8 rounded-xl text-xs flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`; calBtn.textContent = '📅'; calBtn.addEventListener('click', () => openCalendar(habit.id));
-        const shareBtn = document.createElement('button'); shareBtn.type = 'button'; shareBtn.className = `w-8 h-8 rounded-xl text-xs flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`; shareBtn.textContent = '📤'; shareBtn.addEventListener('click', () => shareHabitCard(habit));
-        const archBtn = document.createElement('button'); archBtn.type = 'button'; archBtn.className = `w-8 h-8 rounded-xl text-xs flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`; archBtn.textContent = habit.archived ? '♻️' : '📦'; archBtn.addEventListener('click', () => { habit.archived = !habit.archived; saveState(); renderAll(); updateSettingsLabels(); showToast(habit.archived ? 'Archived' : 'Restored'); });
-        const checkBtn = document.createElement('button'); checkBtn.type = 'button'; checkBtn.className = `px-3 py-2 rounded-xl font-bold text-xs ${doneToday ? 'text-white shadow-sm' : (isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-100 text-slate-700')}`; if (doneToday) checkBtn.style.backgroundColor = habit.color; checkBtn.textContent = doneToday ? '✓ Done' : 'Check';
-        checkBtn.addEventListener('click', () => { if (habit.logs[todayKey]) { delete habit.logs[todayKey]; playCheckSound(false); } else { habit.logs[todayKey] = true; playCheckSound(true); showToast(`${habit.icon} +10 XP!`); } saveState(); renderAll(); });
+        const checkBtn = document.createElement('button'); checkBtn.type = 'button';
+        checkBtn.className = `px-3 py-2 rounded-xl font-bold text-xs shrink-0 whitespace-nowrap ${doneToday || shieldedToday || slippedToday ? 'text-white shadow-sm' : (isDark ? 'bg-slate-700 text-slate-200' : 'bg-slate-100 text-slate-700')}`;
+        if (slippedToday) checkBtn.style.backgroundColor = '#f43f5e';
+        else if (shieldedToday) checkBtn.style.backgroundColor = '#0284c7';
+        else if (doneToday) checkBtn.style.backgroundColor = habit.color;
+        checkBtn.textContent = isQuit ? (slippedToday ? '⚠️ Slipped' : '🛡️ Clean') : (shieldedToday ? '❄️ Rest' : (doneToday ? '✓ Done' : 'Check'));
+        checkBtn.addEventListener('click', () => {
+          if (isQuit) {
+            if (habit.logs[todayKey] === 'slip') { delete habit.logs[todayKey]; playCheckSound(true); showToast('🛡️ Clean streak restored!'); }
+            else { habit.logs[todayKey] = 'slip'; playCheckSound(false); showToast('Reset today — tomorrow is fresh!'); }
+          } else if (habit.logs[todayKey]) {
+            if (habit.logs[todayKey] === 'freeze') state.shields++;
+            delete habit.logs[todayKey]; playCheckSound(false);
+          } else {
+            habit.logs[todayKey] = true; playCheckSound(true);
+            const allDone = activeHabits.length > 0 && activeHabits.every(ah => ah.type === 'quit' ? ah.logs[todayKey] !== 'slip' : ah.logs[todayKey]);
+            if (allDone) { state.bonusXp += 25; launchConfetti(); showToast('🎉 All done today! +25 Bonus XP!'); }
+            else showToast(`${habit.icon} +10 XP!`);
+          }
+          saveState(); renderAll();
+        });
+        top.appendChild(checkBtn); card.appendChild(top);
 
-        btns.append(calBtn, shareBtn, archBtn, checkBtn); top.appendChild(btns); card.appendChild(top);
+        const actionRow = document.createElement('div'); actionRow.className = 'flex items-center gap-1.5 flex-wrap';
+        const pillCls = `px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 ${isDark ? 'bg-slate-900/60 text-slate-200' : 'bg-slate-100 text-slate-700'}`;
+        const timerBtn = document.createElement('button'); timerBtn.type = 'button'; timerBtn.className = pillCls; timerBtn.textContent = '⏱️ Focus'; timerBtn.addEventListener('click', () => openTimerModal(habit));
+        const calBtn = document.createElement('button'); calBtn.type = 'button'; calBtn.className = pillCls; calBtn.textContent = '📅 History'; calBtn.addEventListener('click', () => openCalendar(habit.id));
+        const shareBtn = document.createElement('button'); shareBtn.type = 'button'; shareBtn.className = pillCls; shareBtn.textContent = '📤 Share'; shareBtn.addEventListener('click', () => shareHabitCard(habit));
+        const archBtn = document.createElement('button'); archBtn.type = 'button'; archBtn.className = pillCls; archBtn.textContent = habit.archived ? '♻️ Restore' : '📦 Archive'; archBtn.addEventListener('click', () => { habit.archived = !habit.archived; saveState(); renderAll(); updateSettingsLabels(); showToast(habit.archived ? 'Archived' : 'Restored'); });
+        actionRow.append(timerBtn, calBtn, shareBtn, archBtn);
+        card.appendChild(actionRow);
 
         const grid = document.createElement('div'); grid.className = 'grid grid-flow-col grid-rows-7 gap-1.5 overflow-x-auto pb-1';
         dates.forEach(dStr => {
-          const cell = document.createElement('button'); cell.type = 'button'; const active = Boolean(habit.logs[dStr]);
-          cell.className = 'tile-cell w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px]'; cell.style.backgroundColor = active ? habit.color : (isDark ? '#1e293b' : '#e2e8f0');
-          cell.addEventListener('click', () => { if (habit.logs[dStr]) { delete habit.logs[dStr]; playCheckSound(false); } else { habit.logs[dStr] = true; playCheckSound(true); } saveState(); renderAll(); });
+          const cell = document.createElement('button'); cell.type = 'button';
+          const val = habit.logs[dStr];
+          cell.className = 'tile-cell w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px]';
+          const isCleanQuit = isQuit && (!habit.startDate || dStr >= habit.startDate) && val !== 'slip';
+          cell.style.backgroundColor = val === 'slip' ? '#f43f5e' : (val === 'freeze' ? '#38bdf8' : (val === true || isCleanQuit ? habit.color : (isDark ? '#1e293b' : '#e2e8f0')));
+          cell.addEventListener('click', () => {
+            if (habit.logs[dStr]) {
+              if (habit.logs[dStr] === 'freeze') state.shields++;
+              delete habit.logs[dStr]; playCheckSound(false);
+            } else {
+              habit.logs[dStr] = true; playCheckSound(true);
+            }
+            saveState(); renderAll();
+          });
           grid.appendChild(cell);
         });
         card.appendChild(grid); container.appendChild(card);
@@ -573,9 +1114,31 @@
 
     function renderPickers() {
       const ip = document.getElementById('iconPicker'); ip.innerHTML = '';
-      ICONS.forEach(ic => { const b = document.createElement('button'); b.type = 'button'; b.className = `w-10 h-10 rounded-xl border text-xl flex items-center justify-center ${state.newIcon === ic ? 'border-teal-600 bg-teal-50 ring-2 ring-teal-200' : 'border-slate-200 bg-slate-50'}`; b.textContent = ic; b.addEventListener('click', () => { state.newIcon = ic; renderPickers(); }); ip.appendChild(b); });
+      ICONS.forEach(ic => { const b = document.createElement('button'); b.type = 'button'; b.className = `w-9 h-9 rounded-xl border text-lg flex items-center justify-center ${state.newIcon === ic ? 'border-teal-600 bg-teal-50 ring-2 ring-teal-200' : 'border-slate-200 bg-slate-50'}`; b.textContent = ic; b.addEventListener('click', () => { state.newIcon = ic; renderPickers(); }); ip.appendChild(b); });
       const cp = document.getElementById('colorPicker'); cp.innerHTML = '';
-      COLORS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.className = `w-8 h-8 rounded-full ${state.newColor === c.hex ? 'scale-125 ring-2 ring-teal-600 ring-offset-2' : ''}`; b.style.backgroundColor = c.hex; b.addEventListener('click', () => { state.newColor = c.hex; renderPickers(); }); cp.appendChild(b); });
+      COLORS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.className = `w-7 h-7 rounded-full ${state.newColor === c.hex ? 'scale-125 ring-2 ring-teal-600 ring-offset-2' : ''}`; b.style.backgroundColor = c.hex; b.addEventListener('click', () => { state.newColor = c.hex; renderPickers(); }); cp.appendChild(b); });
+    }
+
+    // Focus Timer Logic
+    let timerHabitId = null, timerTotalSec = 15 * 60, timerRemSec = 15 * 60, timerHandle = null;
+    function updateTimerUI() {
+      const m = String(Math.floor(timerRemSec / 60)).padStart(2, '0');
+      const s = String(timerRemSec % 60).padStart(2, '0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      document.getElementById('timerStartPauseBtn').textContent = timerHandle ? '⏸ Pause' : '▶ Start Focus';
+    }
+    function openTimerModal(habit) {
+      timerHabitId = habit.id;
+      if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+      timerTotalSec = 15 * 60; timerRemSec = timerTotalSec;
+      document.getElementById('timerModalTitle').textContent = `${habit.icon} ${habit.name}`;
+      document.querySelectorAll('.timer-preset').forEach(b => {
+        b.className = b.dataset.mins === '15'
+          ? 'timer-preset py-2 rounded-xl bg-teal-600 text-white font-bold text-xs'
+          : 'timer-preset py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs';
+      });
+      updateTimerUI();
+      document.getElementById('timerModal').classList.remove('hidden');
     }
 
     function openOnboarding(step = 1) {
@@ -610,8 +1173,38 @@
       document.getElementById('dailyQuoteText').textContent = QUOTES[new Date().getDate() % QUOTES.length];
       document.getElementById('reminderTimeInput').value = state.reminderTime;
 
-      setTimeout(() => { document.getElementById('splashScreen').classList.add('fade-out'); if (!state.onboarded) openOnboarding(1); }, 900);
+      setTimeout(() => {
+        document.getElementById('splashScreen').classList.add('fade-out');
+        if (state.appPin) document.getElementById('pinLockScreen').classList.remove('hidden');
+        else if (!state.onboarded) openOnboarding(1);
+      }, 900);
 
+      // PIN Lock Handler
+      let enteredPin = '';
+      function refreshPinDots() {
+        const dots = document.getElementById('pinDots').children;
+        for (let i = 0; i < 4; i++) {
+          dots[i].className = i < enteredPin.length ? 'w-4 h-4 rounded-full bg-teal-400 border-2 border-teal-400' : 'w-4 h-4 rounded-full border-2 border-teal-400';
+        }
+      }
+      document.querySelectorAll('.pin-key').forEach(k => k.addEventListener('click', () => {
+        if (enteredPin.length >= 4) return;
+        enteredPin += k.dataset.pin; refreshPinDots();
+        if (enteredPin.length === 4) {
+          if (enteredPin === state.appPin) {
+            document.getElementById('pinLockScreen').classList.add('hidden');
+            enteredPin = ''; refreshPinDots();
+            if (!state.onboarded) openOnboarding(1);
+          } else {
+            document.getElementById('pinLockHint').textContent = 'Incorrect PIN — try again';
+            enteredPin = ''; setTimeout(refreshPinDots, 250);
+          }
+        }
+      }));
+      document.getElementById('pinClearBtn').addEventListener('click', () => { enteredPin = ''; refreshPinDots(); });
+      document.getElementById('pinBackBtn').addEventListener('click', () => { enteredPin = enteredPin.slice(0, -1); refreshPinDots(); });
+
+      // Onboarding
       document.getElementById('onboardNextBtn').addEventListener('click', () => {
         if (state.onboardStep === 1) openOnboarding(2);
         else { state.userName = document.getElementById('onboardNameInput').value.trim(); state.onboarded = true; saveState(); updateHeader(); document.getElementById('onboardingScreen').classList.add('hidden'); showToast(state.userName ? `Let's go, ${state.userName}! 🔥` : 'Let us build momentum! 🔥'); }
@@ -622,12 +1215,131 @@
         document.querySelectorAll('.focus-btn').forEach(b => b.className = b === btn ? 'focus-btn p-3 rounded-xl border-2 border-teal-600 bg-teal-50 text-xs font-bold text-teal-900 text-left' : 'focus-btn p-3 rounded-xl border-2 border-slate-200 bg-white text-xs font-bold text-slate-700 text-left');
       }));
 
+      // Navigation & Search
       document.querySelectorAll('.bnav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
       document.getElementById('settingsProBannerBtn').addEventListener('click', () => switchTab('pro'));
-      document.getElementById('themeToggleBtn').addEventListener('click', () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; saveState(); applyTheme(); renderAll(); });
+      document.getElementById('themeToggleBtn').addEventListener('click', () => document.getElementById('themeModal').classList.remove('hidden'));
+      document.getElementById('closeThemeModalBtn').addEventListener('click', () => document.getElementById('themeModal').classList.add('hidden'));
+      document.querySelectorAll('.theme-opt-btn').forEach(btn => btn.addEventListener('click', () => {
+        state.theme = btn.dataset.theme; saveState(); applyTheme(); renderAll();
+        document.getElementById('themeModal').classList.add('hidden');
+        showToast('🎨 Theme updated!');
+      }));
       document.getElementById('replayOnboardBtn').addEventListener('click', () => openOnboarding(1));
       document.getElementById('searchHabitInput').addEventListener('input', e => { state.search = e.target.value; renderAll(); });
       document.getElementById('toggleArchiveFilterBtn').addEventListener('click', e => { state.showArchived = !state.showArchived; e.currentTarget.textContent = state.showArchived ? '📦 Archived' : '📦 Active'; renderAll(); });
+
+      // Mood & Daily Reflection
+      document.querySelectorAll('.mood-btn').forEach(btn => btn.addEventListener('click', () => {
+        const k = formatDateISO(new Date());
+        state.journal[k] = state.journal[k] || {};
+        state.journal[k].mood = btn.dataset.mood;
+        saveState(); renderMoodBar(); showToast(`Mood saved: ${btn.dataset.mood}`);
+      }));
+      document.getElementById('openJournalBtn').addEventListener('click', () => {
+        const k = formatDateISO(new Date());
+        document.getElementById('journalNoteInput').value = (state.journal[k] && state.journal[k].note) || '';
+        document.getElementById('journalModal').classList.remove('hidden');
+      });
+      document.getElementById('closeJournalBtn').addEventListener('click', () => document.getElementById('journalModal').classList.add('hidden'));
+      document.getElementById('saveJournalBtn').addEventListener('click', () => {
+        const k = formatDateISO(new Date());
+        state.journal[k] = state.journal[k] || {};
+        state.journal[k].note = document.getElementById('journalNoteInput').value.trim();
+        saveState(); document.getElementById('journalModal').classList.add('hidden');
+        showToast('✍️ Reflection saved!');
+      });
+
+      // Focus Timer Events
+      document.getElementById('closeTimerBtn').addEventListener('click', () => {
+        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+        document.getElementById('timerModal').classList.add('hidden');
+      });
+      document.querySelectorAll('.timer-preset').forEach(b => b.addEventListener('click', () => {
+        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+        const mins = parseInt(b.dataset.mins, 10);
+        timerTotalSec = mins * 60; timerRemSec = timerTotalSec;
+        document.querySelectorAll('.timer-preset').forEach(x => {
+          x.className = x === b
+            ? 'timer-preset py-2 rounded-xl bg-teal-600 text-white font-bold text-xs'
+            : 'timer-preset py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs';
+        });
+        updateTimerUI();
+      }));
+      document.getElementById('timerResetBtn').addEventListener('click', () => {
+        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+        timerRemSec = timerTotalSec; updateTimerUI();
+      });
+      document.getElementById('timerStartPauseBtn').addEventListener('click', () => {
+        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; updateTimerUI(); return; }
+        timerHandle = setInterval(() => {
+          timerRemSec--;
+          if (timerRemSec <= 0) {
+            clearInterval(timerHandle); timerHandle = null; timerRemSec = 0; updateTimerUI();
+            playAlarmChime(); launchConfetti();
+            const h = state.habits.find(x => x.id === timerHabitId);
+            if (h) {
+              h.logs[formatDateISO(new Date())] = true;
+              state.bonusXp += 5; state.timerSessions += 1;
+              saveState(); renderAll();
+              showToast(`⏱️ Focus complete! ${h.icon} +15 XP!`);
+            }
+            document.getElementById('timerModal').classList.add('hidden');
+          } else { updateTimerUI(); }
+        }, 1000);
+        updateTimerUI();
+      });
+
+      // Streak Shield Shop
+      function openShieldModal() {
+        document.getElementById('shieldModalInv').textContent = `${state.shields} Shields ❄️`;
+        document.getElementById('shieldModalXp').textContent = `${getTotalEarnedXp()} XP`;
+        document.getElementById('shieldModal').classList.remove('hidden');
+      }
+      document.getElementById('shieldBadgeBtn').addEventListener('click', openShieldModal);
+      document.getElementById('setShieldShopBtn').addEventListener('click', openShieldModal);
+      document.getElementById('closeShieldBtn').addEventListener('click', () => document.getElementById('shieldModal').classList.add('hidden'));
+      document.getElementById('buyShieldBtn').addEventListener('click', () => {
+        if (getTotalEarnedXp() < 150) { showToast('Need 150 XP! Complete more habits first.'); return; }
+        state.spentXp += 150; state.shields += 1; saveState();
+        openShieldModal(); renderAll(); updateSettingsLabels();
+        showToast('❄️ Streak Shield purchased!');
+      });
+
+      // PIN Setup
+      document.getElementById('setPinBtn').addEventListener('click', () => {
+        document.getElementById('pinSetupInput').value = state.appPin || '';
+        document.getElementById('pinSetupModal').classList.remove('hidden');
+      });
+      document.getElementById('closePinSetupBtn').addEventListener('click', () => document.getElementById('pinSetupModal').classList.add('hidden'));
+      document.getElementById('savePinBtn').addEventListener('click', () => {
+        const val = document.getElementById('pinSetupInput').value.trim();
+        if (!/^\d{4}$/.test(val)) { showToast('Enter exactly 4 digits!'); return; }
+        state.appPin = val; saveState(); updateSettingsLabels();
+        document.getElementById('pinSetupModal').classList.add('hidden');
+        showToast('🔐 App PIN Lock enabled!');
+      });
+      document.getElementById('disablePinBtn').addEventListener('click', () => {
+        state.appPin = ''; saveState(); updateSettingsLabels();
+        document.getElementById('pinSetupModal').classList.add('hidden');
+        showToast('PIN Lock removed');
+      });
+
+      // CSV Export
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (!state.isPro) { switchTab('pro'); showToast('👑 Unlock Plus to export CSV Excel reports!'); return; }
+        const rows = [['Habit', 'Category', 'WeeklyGoal', 'Date', 'Status']];
+        state.habits.forEach(h => {
+          Object.entries(h.logs).forEach(([dt, val]) => {
+            rows.push([`"${h.name.replace(/"/g, '""')}"`, h.category || 'Health', h.weeklyGoal || 7, dt, val === 'freeze' ? 'Shield' : 'Done']);
+          });
+        });
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = `routinepractice_report_${formatDateISO(new Date())}.csv`; a.click(); URL.revokeObjectURL(url);
+        showToast('📊 CSV Report downloaded!');
+      });
 
       // Settings Modals
       document.getElementById('setGeneralBtn').addEventListener('click', () => document.getElementById('generalModal').classList.remove('hidden'));
@@ -673,7 +1385,7 @@
       document.getElementById('setReorderBtn').addEventListener('click', () => { renderReorderList(); document.getElementById('reorderModal').classList.remove('hidden'); });
       document.getElementById('closeReorderBtn').addEventListener('click', () => document.getElementById('reorderModal').classList.add('hidden'));
 
-      document.getElementById('setWhatsNewBtn').addEventListener('click', () => showInfoModal("What's New 📰", '<p><b>Version 2.0:</b> Added Daily Check-In Alarms, Calendar History Editor, Habit Notes, Archive/Restore, XP Leveling, and JSON Restore.</p>'));
+      document.getElementById('setWhatsNewBtn').addEventListener('click', () => showInfoModal("What's New 📰", '<p><b>Version 3.1:</b> Added 1-Tap Habit Templates, Quit Bad Habit Mode, Habit Cues, Combined 84-Day Heatmap, Focus Timer, Streak Shields, Weekly Goals, Categories, Mood Journal, Badges, CSV Export, App PIN Lock &amp; Future-Date Calendar Lock.</p>'));
       document.getElementById('setFeedbackBtn').addEventListener('click', () => showInfoModal('Send Feedback ✉️', '<p>Love Routine Practice or want a new feature? Leave a review or message us on the Google Play Store listing page!</p>'));
       document.getElementById('openPrivacyBtn').addEventListener('click', () => showInfoModal('Privacy Policy 🔒', '<p>Routine Practice stores your name, habits, notes, and check-ins exclusively on your device. Zero personal data is sent to external servers.</p>'));
       document.getElementById('setTermsBtn').addEventListener('click', () => showInfoModal('Terms Of Service §', '<p>Routine Practice is a personal productivity tool provided as-is. Subscriptions and lifetime passes are managed securely through Google Play Billing.</p>'));
@@ -683,31 +1395,56 @@
       document.getElementById('closeCalModalBtn').addEventListener('click', () => document.getElementById('calendarModal').classList.add('hidden'));
       document.getElementById('calPrevMonthBtn').addEventListener('click', () => { state.calMonth--; if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; } renderCalendar(); });
       document.getElementById('calNextMonthBtn').addEventListener('click', () => { state.calMonth++; if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; } renderCalendar(); });
+      document.getElementById('calToggleShieldModeBtn').addEventListener('click', () => { state.calShieldMode = !state.calShieldMode; renderCalendar(); });
 
       const nameInput = document.getElementById('habitNameInput'), noteInput = document.getElementById('habitNoteInput'), modal = document.getElementById('habitModal');
       document.getElementById('addHabitOpenBtn').addEventListener('click', () => {
         const activeCount = state.habits.filter(h => !h.archived).length;
         if (!state.isPro && activeCount >= 3) { switchTab('pro'); showToast('Free plan allows 3 active habits — Unlock Plus!'); return; }
-        nameInput.value = ''; noteInput.value = ''; modal.classList.remove('hidden'); setTimeout(() => nameInput.focus(), 60);
+        openHabitModal(null);
       });
       document.getElementById('closeHabitModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
+      document.getElementById('typeBuildBtn').addEventListener('click', () => { state.newHabitType = 'build'; updateHabitTypeUI(); });
+      document.getElementById('typeQuitBtn').addEventListener('click', () => { state.newHabitType = 'quit'; updateHabitTypeUI(); });
+      const TEMPLATES = {
+        morning: { name: 'Wake Up at 6 AM', cue: 'When alarm rings', note: 'No snooze', category: 'Health', goal: '7', icon: '🌅', color: '#f59e0b', type: 'build' },
+        workout: { name: '30m Workout', cue: 'After changing shoes', note: 'Strength or cardio', category: 'Health', goal: '5', icon: '💪', color: '#10b981', type: 'build' },
+        study: { name: 'Deep Study 30m', cue: 'After dinner', note: 'Phone in other room', category: 'Study', goal: '6', icon: '📚', color: '#0ea5e9', type: 'build' },
+        detox: { name: 'No Reels / Shorts', cue: 'Before 10 AM', note: 'Stay focused', category: 'Mind', goal: '7', icon: '📵', color: '#f43f5e', type: 'quit' }
+      };
+      document.querySelectorAll('.tpl-btn').forEach(btn => btn.addEventListener('click', () => {
+        const t = TEMPLATES[btn.dataset.tpl]; if (!t) return;
+        nameInput.value = t.name;
+        document.getElementById('habitCueInput').value = t.cue;
+        noteInput.value = t.note;
+        document.getElementById('habitCategorySelect').value = t.category;
+        document.getElementById('habitGoalSelect').value = t.goal;
+        state.newIcon = t.icon; state.newColor = t.color; state.newHabitType = t.type;
+        updateHabitTypeUI(); renderPickers();
+      }));
+
       function handleSaveHabit() {
         const name = nameInput.value.trim(); if (!name) { nameInput.classList.add('border-rose-500'); showToast('Enter a habit name!'); return; }
         nameInput.classList.remove('border-rose-500');
-        state.habits.unshift({ id: 'h_' + Date.now(), name, note: noteInput.value.trim(), icon: state.newIcon, color: state.newColor, archived: false, logs: {} });
-        saveState(); modal.classList.add('hidden'); renderAll(); playCheckSound(true); showToast(`${state.newIcon} Added!`);
+        const category = document.getElementById('habitCategorySelect').value;
+        const weeklyGoal = parseInt(document.getElementById('habitGoalSelect').value, 10) || 7;
+        const cue = document.getElementById('habitCueInput').value.trim();
+        if (state.editHabitId) {
+          const h = state.habits.find(x => x.id === state.editHabitId);
+          if (h) { h.name = name; h.note = noteInput.value.trim(); h.cue = cue; h.category = category; h.weeklyGoal = weeklyGoal; h.type = state.newHabitType; if (!h.startDate) h.startDate = formatDateISO(new Date()); h.icon = state.newIcon; h.color = state.newColor; }
+          showToast('Habit updated!');
+        } else {
+          state.habits.unshift({ id: 'h_' + Date.now(), name, note: noteInput.value.trim(), cue, category, weeklyGoal, type: state.newHabitType, startDate: formatDateISO(new Date()), icon: state.newIcon, color: state.newColor, archived: false, logs: {} });
+          playCheckSound(true); showToast(`${state.newIcon} Added!`);
+        }
+        saveState(); modal.classList.add('hidden'); renderAll();
       }
       document.getElementById('saveHabitBtn').addEventListener('click', handleSaveHabit);
       nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveHabit(); } });
 
       document.querySelectorAll('.plan-card').forEach(c => c.addEventListener('click', () => {
         state.selectedPlan = c.dataset.plan;
-        document.querySelectorAll('.plan-card').forEach(card => {
-          const active = card.dataset.plan === state.selectedPlan, r = card.querySelector('.plan-radio');
-          card.className = active ? 'plan-card w-full text-left p-4 rounded-2xl border-2 border-teal-600 bg-teal-50/70 flex items-center justify-between' : 'plan-card w-full text-left p-4 rounded-2xl border-2 border-slate-200 flex items-center justify-between';
-          r.className = active ? 'plan-radio w-5 h-5 rounded-full border-2 border-teal-600 flex items-center justify-center' : 'plan-radio w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center';
-          r.innerHTML = active ? '<span class="w-2.5 h-2.5 rounded-full bg-teal-600"></span>' : '';
-        });
+        renderPlanCards();
       }));
       const SKU_MAP = {
         lifetime: { sku: 'routinepractice_lifetime', type: 'non_consumable' },
@@ -755,6 +1492,7 @@
       });
 
       document.getElementById('proContinueBtn').addEventListener('click', async () => {
+        if (state.isPro) { showToast('👑 Routine Practice Plus is already active!'); return; }
         const item = SKU_MAP[state.selectedPlan] || SKU_MAP.annual;
         if (iapStore && window.CdvPurchase) {
           try {
