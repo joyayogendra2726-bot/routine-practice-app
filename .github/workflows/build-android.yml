@@ -1,4 +1,4 @@
-name: Build Android AAB
+name: Build Android AAB & APK
 
 on:
   push:
@@ -51,18 +51,29 @@ jobs:
             done
           fi
 
-      - name: Build Signed Release AAB
+      - name: Build Signed Release AAB & APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew bundleRelease \
+          ./gradlew bundleRelease assembleRelease \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/routinepractice-release.keystore \
             -Pandroid.injected.signing.store.password=RoutinePractice2026 \
             -Pandroid.injected.signing.key.alias=routinepractice \
             -Pandroid.injected.signing.key.password=RoutinePractice2026
 
-      - name: Upload AAB Artifact
+      - name: Export Upload Certificate PEM
+        run: |
+          keytool -export -rfc \
+            -keystore ${{ github.workspace }}/routinepractice-release.keystore \
+            -alias routinepractice \
+            -storepass RoutinePractice2026 \
+            -file upload_certificate.pem
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: routine-practice-release
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/release/app-release.apk
+            upload_certificate.pem
